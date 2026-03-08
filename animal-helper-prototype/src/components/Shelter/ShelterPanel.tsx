@@ -186,7 +186,7 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
                 fontSize: "0.7rem", fontWeight: 700, padding: "3px 10px", borderRadius: "20px",
                 border: "1px solid rgba(6,182,212,0.25)",
               }}>
-                <Shield size={10} /> WOLONTARIUSZE
+                <Shield size={10} /> WOLONTARIUSZE ANIMAL HELPER
               </span>
             )}
           </div>
@@ -376,7 +376,7 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
               Dodaj opinię
               {user.role === "VOLUNTEER" && (
                 <span style={{ background: "#000", color: "var(--yellow)", fontSize: "0.65rem", padding: "2px 8px", borderRadius: "20px" }}>
-                  WOLONTARIUSZ
+                  WOLONTARIUSZ ANIMAL HELPER
                 </span>
               )}
             </button>
@@ -433,7 +433,7 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
                             {review.name} {review.surname}
                           </span>
                           <span style={{ background: "rgba(6,182,212,0.2)", color: "#06B6D4", fontSize: "0.6rem", fontWeight: 700, padding: "2px 7px", borderRadius: "20px" }}>
-                            WOLONTARIUSZ
+                            WOLONTARIUSZ ANIMAL HELPER
                           </span>
                         </div>
                         <p style={{ fontSize: "0.7rem", color: "var(--text-muted)", marginTop: "2px" }}>

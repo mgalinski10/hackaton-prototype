@@ -116,7 +116,7 @@ export default function Sidebar() {
                     flexShrink: 0,
                   }}
                 >
-                  VOL
+                  AH
                 </span>
               )}
             </div>
