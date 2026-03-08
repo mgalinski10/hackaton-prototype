@@ -58,10 +58,21 @@ export default function VolunteerApplyPage() {
     const errs = validate();
     if (Object.keys(errs).length > 0) { setErrors(errs); return; }
     setLoading(true);
-    // Simulate API call
-    await new Promise((r) => setTimeout(r, 1800));
-    setLoading(false);
-    setStep("submitted");
+    try {
+      const fd = new FormData();
+      fd.append("name", form.name);
+      fd.append("surname", form.surname);
+      fd.append("email", form.email);
+      fd.append("motivation", form.motivation);
+      if (file) fd.append("document", file);
+      const res = await fetch("/api/applications", { method: "POST", body: fd });
+      if (!res.ok) throw new Error();
+      setStep("submitted");
+    } catch {
+      setErrors({ form: "Wystąpił błąd. Spróbuj ponownie." });
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (step === "submitted") {

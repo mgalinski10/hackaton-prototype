@@ -41,7 +41,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    setUser(loadUser());
+    const stored = loadUser();
+    if (!stored) return;
+    // Check if role was upgraded by admin
+    fetch(`/api/user-role?email=${encodeURIComponent(stored.email)}`)
+      .then((r) => r.json())
+      .then(({ role }) => {
+        const upgraded = role ? { ...stored, role } : stored;
+        setUser(upgraded);
+        saveUser(upgraded);
+      })
+      .catch(() => setUser(stored));
   }, []);
 
   const setAndPersist = (u: User | null) => {

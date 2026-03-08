@@ -7,25 +7,21 @@ import { mockShelters } from "@/data/mockData";
 import {
   PawPrint, ArrowLeft, ShieldCheck, Users, Building2,
   CheckCircle2, AlertCircle, TrendingUp, Heart,
-  BarChart3, FileText, Bell,
+  BarChart3, FileText, Bell, X, ExternalLink, MessageSquare,
 } from "lucide-react";
 
 interface Application {
   id: string;
   name: string;
+  surname: string;
   email: string;
-  submitted: string;
+  motivation: string;
+  documentName: string;
+  documentPath: string;
   status: "pending" | "approved" | "rejected";
-  document: string;
+  submittedAt: string;
+  rejectionNote: string | null;
 }
-
-const MOCK_APPLICATIONS: Application[] = [
-  { id: "app1", name: "Karol Wiśniewski", email: "karol@example.com", submitted: "2026-03-05", status: "pending", document: "dowod_karol.pdf" },
-  { id: "app2", name: "Marta Kowalczyk", email: "marta@example.com", submitted: "2026-03-04", status: "pending", document: "paszport_marta.pdf" },
-  { id: "app3", name: "Paweł Nowicki", email: "pawel@example.com", submitted: "2026-03-01", status: "approved", document: "dowod_pawel.pdf" },
-  { id: "app4", name: "Ola Dąbrowska", email: "ola@example.com", submitted: "2026-02-28", status: "rejected", document: "dowod_ola.pdf" },
-  { id: "app5", name: "Tomasz Lewandowski", email: "tomasz@example.com", submitted: "2026-02-25", status: "approved", document: "dowod_tomasz.pdf" },
-];
 
 const statusColors = {
   pending:  { bg: "rgba(245,158,11,0.12)", color: "#f59e0b", label: "Oczekuje" },
@@ -33,16 +29,185 @@ const statusColors = {
   rejected: { bg: "rgba(239,68,68,0.12)",  color: "#ef4444", label: "Odrzucono" },
 };
 
+// ─── Application detail modal ──────────────────────────────────────────────────
+
+function ApplicationModal({
+  app,
+  onClose,
+  onApprove,
+  onReject,
+}: {
+  app: Application;
+  onClose: () => void;
+  onApprove: (id: string) => void;
+  onReject: (id: string, note: string) => void;
+}) {
+  const [rejecting, setRejecting] = useState(false);
+  const [note, setNote] = useState("");
+  const [noteError, setNoteError] = useState("");
+
+  const handleReject = () => {
+    if (!note.trim()) { setNoteError("Notatka jest wymagana przy odrzuceniu."); return; }
+    onReject(app.id, note.trim());
+  };
+
+  const st = statusColors[app.status];
+
+  return (
+    <div
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 10000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", width: "100%", maxWidth: "560px", maxHeight: "90vh", overflow: "auto" }}>
+        {/* Header */}
+        <div style={{ padding: "20px 24px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div>
+            <h2 style={{ fontWeight: 700, fontSize: "1.1rem", color: "var(--text)" }}>Wniosek wolontariusza</h2>
+            <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginTop: "2px" }}>
+              Złożony {new Date(app.submittedAt).toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" })}
+            </p>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "4px" }}>
+            <X size={20} />
+          </button>
+        </div>
+
+        <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: "18px" }}>
+          {/* Status */}
+          <span style={{ alignSelf: "flex-start", background: st.bg, color: st.color, fontSize: "0.75rem", fontWeight: 700, padding: "4px 12px", borderRadius: "20px" }}>
+            {st.label}
+          </span>
+
+          {/* Person */}
+          <div style={{ background: "var(--surface-2)", borderRadius: "14px", padding: "16px", display: "flex", gap: "14px", alignItems: "center" }}>
+            <div style={{ width: "48px", height: "48px", borderRadius: "50%", background: "rgba(250,204,21,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, color: "var(--yellow)", fontSize: "1.1rem", flexShrink: 0 }}>
+              {app.name[0]}{app.surname[0]}
+            </div>
+            <div>
+              <p style={{ fontWeight: 700, fontSize: "1rem", color: "var(--text)" }}>{app.name} {app.surname}</p>
+              <p style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>{app.email}</p>
+            </div>
+          </div>
+
+          {/* Motivation */}
+          <div>
+            <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>
+              Motywacja
+            </p>
+            <div style={{ background: "var(--surface-2)", borderRadius: "12px", padding: "14px 16px", fontSize: "0.9rem", color: "var(--text)", lineHeight: "1.65", whiteSpace: "pre-wrap" }}>
+              {app.motivation || <span style={{ color: "var(--text-muted)", fontStyle: "italic" }}>Brak treści</span>}
+            </div>
+          </div>
+
+          {/* Document */}
+          {app.documentName && (
+            <div>
+              <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px" }}>
+                Dokument tożsamości
+              </p>
+              <a
+                href={app.documentPath}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ display: "flex", alignItems: "center", gap: "10px", background: "rgba(250,204,21,0.08)", border: "1px solid rgba(250,204,21,0.25)", borderRadius: "12px", padding: "12px 16px", color: "var(--yellow)", textDecoration: "none" }}
+              >
+                <FileText size={18} style={{ flexShrink: 0 }} />
+                <span style={{ flex: 1, fontSize: "0.875rem", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{app.documentName}</span>
+                <ExternalLink size={14} style={{ flexShrink: 0 }} />
+              </a>
+            </div>
+          )}
+
+          {/* Rejection note (readonly for already rejected) */}
+          {app.status === "rejected" && app.rejectionNote && (
+            <div>
+              <p style={{ fontSize: "0.75rem", fontWeight: 700, color: "#ef4444", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "8px", display: "flex", alignItems: "center", gap: "6px" }}>
+                <MessageSquare size={12} /> Powód odrzucenia
+              </p>
+              <div style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "12px", padding: "14px 16px", fontSize: "0.875rem", color: "var(--text)", lineHeight: "1.6" }}>
+                {app.rejectionNote}
+              </div>
+            </div>
+          )}
+
+          {/* Actions for pending */}
+          {app.status === "pending" && (
+            <div style={{ borderTop: "1px solid var(--border)", paddingTop: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
+              {!rejecting ? (
+                <div style={{ display: "flex", gap: "10px" }}>
+                  <button
+                    onClick={() => onApprove(app.id)}
+                    style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.35)", borderRadius: "12px", padding: "11px", color: "#22c55e", fontWeight: 700, fontSize: "0.9rem", cursor: "pointer" }}
+                  >
+                    <CheckCircle2 size={16} /> Zatwierdź
+                  </button>
+                  <button
+                    onClick={() => setRejecting(true)}
+                    style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "12px", padding: "11px", color: "#ef4444", fontWeight: 700, fontSize: "0.9rem", cursor: "pointer" }}
+                  >
+                    <AlertCircle size={16} /> Odrzuć
+                  </button>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <p style={{ fontSize: "0.85rem", fontWeight: 600, color: "#ef4444" }}>Podaj powód odrzucenia *</p>
+                  <textarea
+                    value={note}
+                    onChange={(e) => { setNote(e.target.value); if (e.target.value.trim()) setNoteError(""); }}
+                    placeholder="Opisz powód odrzucenia wniosku (np. niekompletny dokument, brak wystarczającej motywacji)..."
+                    rows={4}
+                    style={{
+                      width: "100%", background: "var(--surface-2)",
+                      border: `1px solid ${noteError ? "#ef4444" : "var(--border)"}`,
+                      borderRadius: "10px", padding: "10px 12px", color: "var(--text)",
+                      fontSize: "0.875rem", resize: "vertical", outline: "none", fontFamily: "inherit",
+                    }}
+                  />
+                  {noteError && <p style={{ fontSize: "0.78rem", color: "#ef4444" }}>{noteError}</p>}
+                  <div style={{ display: "flex", gap: "8px" }}>
+                    <button
+                      onClick={() => { setRejecting(false); setNote(""); setNoteError(""); }}
+                      style={{ flex: 1, background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "10px", padding: "10px", color: "var(--text-muted)", fontSize: "0.875rem", cursor: "pointer", fontWeight: 600 }}
+                    >
+                      Anuluj
+                    </button>
+                    <button
+                      onClick={handleReject}
+                      style={{ flex: 1, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.35)", borderRadius: "10px", padding: "10px", color: "#ef4444", fontSize: "0.875rem", cursor: "pointer", fontWeight: 700 }}
+                    >
+                      Potwierdź odrzucenie
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
+
 export default function AdminPage() {
   const { user } = useAuth();
   const router = useRouter();
-  const [applications, setApplications] = useState(MOCK_APPLICATIONS);
+  const [applications, setApplications] = useState<Application[]>([]);
   const [activeSection, setActiveSection] = useState<"overview" | "applications" | "shelters">("overview");
   const [toast, setToast] = useState("");
+  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
 
   useEffect(() => {
     if (!user || user.role !== "ADMIN") router.push("/login");
   }, [user, router]);
+
+  useEffect(() => {
+    fetch("/api/applications")
+      .then((r) => r.json())
+      .then((data: Application[]) => setApplications(data))
+      .catch(() => {});
+  }, []);
 
   if (!user || user.role !== "ADMIN") return null;
 
@@ -52,20 +217,44 @@ export default function AdminPage() {
   const totalAdoptedThisYear = mockShelters.reduce((acc, s) => acc + s.animalsAdoptedThisYear, 0);
   const pendingApps = applications.filter((a) => a.status === "pending").length;
 
-  const handleAppAction = (id: string, action: "approved" | "rejected") => {
-    setApplications((prev) => prev.map((a) => a.id === id ? { ...a, status: action } : a));
-    setToast(action === "approved" ? "Wolontariusz zatwierdzony ✓" : "Aplikacja odrzucona");
-    setTimeout(() => setToast(""), 3000);
+  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 3000); };
+
+  const handleApprove = async (id: string) => {
+    const res = await fetch(`/api/applications/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "approved" }),
+    });
+    if (!res.ok) return;
+    const updated: Application = await res.json();
+    setApplications((prev) => prev.map((a) => a.id === id ? updated : a));
+    setSelectedApp(updated);
+    showToast("Wolontariusz zatwierdzony. Rola zostanie zaktualizowana przy następnym logowaniu.");
+  };
+
+  const handleReject = async (id: string, rejectionNote: string) => {
+    const res = await fetch(`/api/applications/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "rejected", rejectionNote }),
+    });
+    if (!res.ok) return;
+    const updated: Application = await res.json();
+    setApplications((prev) => prev.map((a) => a.id === id ? updated : a));
+    setSelectedApp(updated);
+    showToast("Aplikacja odrzucona.");
   };
 
   const navItems = [
-    { key: "overview", label: "Przegląd", icon: <BarChart3 size={16} /> },
-    { key: "applications", label: `Aplikacje ${pendingApps > 0 ? `(${pendingApps})` : ""}`, icon: <FileText size={16} /> },
-    { key: "shelters", label: "Schroniska", icon: <Building2 size={16} /> },
+    { key: "overview",      label: "Przegląd",    icon: <BarChart3 size={16} /> },
+    { key: "applications",  label: `Aplikacje${pendingApps > 0 ? ` (${pendingApps})` : ""}`, icon: <FileText size={16} /> },
+    { key: "shelters",      label: "Schroniska",  icon: <Building2 size={16} /> },
   ] as const;
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)", display: "flex", flexDirection: "column" }}>
+      <style>{`.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #22c55e; color: #fff; padding: 12px 24px; border-radius: 12px; font-weight: 600; font-size: 0.875rem; z-index: 9999; box-shadow: 0 4px 20px rgba(0,0,0,0.3); max-width: 90vw; text-align: center; }`}</style>
+
       {/* Header */}
       <div style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)", padding: "14px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
@@ -80,9 +269,12 @@ export default function AdminPage() {
           </span>
         </div>
         {pendingApps > 0 && (
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.3)", borderRadius: "10px", padding: "6px 12px", fontSize: "0.8rem", color: "#f59e0b", fontWeight: 600 }}>
-            <Bell size={14} /> {pendingApps} nowych aplikacji
-          </div>
+          <button
+            onClick={() => setActiveSection("applications")}
+            style={{ display: "flex", alignItems: "center", gap: "8px", background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.3)", borderRadius: "10px", padding: "6px 12px", fontSize: "0.8rem", color: "#f59e0b", fontWeight: 600, cursor: "pointer" }}
+          >
+            <Bell size={14} /> {pendingApps} {pendingApps === 1 ? "nowa aplikacja" : "nowe aplikacje"}
+          </button>
         )}
       </div>
 
@@ -132,7 +324,6 @@ export default function AdminPage() {
                 ))}
               </div>
 
-              {/* Shelter capacity bars */}
               <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", padding: "20px" }}>
                 <h2 style={{ fontWeight: 700, fontSize: "1rem", color: "var(--text)", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
                   <TrendingUp size={18} style={{ color: "var(--yellow)" }} /> Zapełnienie schronisk
@@ -160,45 +351,48 @@ export default function AdminPage() {
           {/* APPLICATIONS */}
           {activeSection === "applications" && (
             <div>
-              <h1 style={{ fontWeight: 800, fontSize: "1.5rem", color: "var(--text)", marginBottom: "24px" }}>Aplikacje wolontariuszy</h1>
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                {applications.map((app) => {
-                  const st = statusColors[app.status];
-                  return (
-                    <div key={app.id} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "16px", padding: "18px", display: "flex", alignItems: "center", gap: "16px" }}>
-                      <div style={{ width: "42px", height: "42px", borderRadius: "50%", background: "var(--surface-2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontWeight: 800, color: "var(--yellow)", fontSize: "1rem" }}>
-                        {app.name.split(" ").map(n => n[0]).join("")}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--text)" }}>{app.name}</p>
-                        <p style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{app.email}</p>
-                        <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "2px" }}>
-                          📎 {app.document} · {new Date(app.submitted).toLocaleDateString("pl-PL")}
-                        </p>
-                      </div>
-                      <span style={{ background: st.bg, color: st.color, fontSize: "0.72rem", fontWeight: 700, padding: "4px 10px", borderRadius: "20px", flexShrink: 0 }}>
-                        {st.label}
-                      </span>
-                      {app.status === "pending" && (
-                        <div style={{ display: "flex", gap: "8px", flexShrink: 0 }}>
-                          <button
-                            onClick={() => handleAppAction(app.id, "approved")}
-                            style={{ display: "flex", alignItems: "center", gap: "4px", background: "rgba(34,197,94,0.12)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: "8px", padding: "6px 12px", color: "#22c55e", fontWeight: 700, fontSize: "0.78rem", cursor: "pointer" }}
-                          >
-                            <CheckCircle2 size={13} /> Zatwierdź
-                          </button>
-                          <button
-                            onClick={() => handleAppAction(app.id, "rejected")}
-                            style={{ display: "flex", alignItems: "center", gap: "4px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: "8px", padding: "6px 12px", color: "#ef4444", fontWeight: 700, fontSize: "0.78rem", cursor: "pointer" }}
-                          >
-                            <AlertCircle size={13} /> Odrzuć
-                          </button>
+              <h1 style={{ fontWeight: 800, fontSize: "1.5rem", color: "var(--text)", marginBottom: "8px" }}>Aplikacje wolontariuszy</h1>
+              <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginBottom: "24px" }}>
+                {applications.length === 0 ? "Brak złożonych wniosków." : `${applications.length} ${applications.length === 1 ? "wniosek" : "wnioski/ów"} łącznie · ${pendingApps} oczekujących`}
+              </p>
+
+              {applications.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--text-muted)", fontSize: "0.9rem" }}>
+                  <FileText size={40} style={{ margin: "0 auto 16px", opacity: 0.3 }} />
+                  Żaden wniosek nie został jeszcze złożony.
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  {applications.map((app) => {
+                    const st = statusColors[app.status];
+                    return (
+                      <div
+                        key={app.id}
+                        onClick={() => setSelectedApp(app)}
+                        style={{ background: "var(--surface)", border: `1px solid ${app.status === "pending" ? "rgba(245,158,11,0.25)" : "var(--border)"}`, borderRadius: "16px", padding: "16px 20px", display: "flex", alignItems: "center", gap: "16px", cursor: "pointer", transition: "border-color 0.2s" }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(250,204,21,0.4)"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.borderColor = app.status === "pending" ? "rgba(245,158,11,0.25)" : "var(--border)"; }}
+                      >
+                        <div style={{ width: "42px", height: "42px", borderRadius: "50%", background: "var(--surface-2)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontWeight: 800, color: "var(--yellow)", fontSize: "1rem" }}>
+                          {app.name[0]}{app.surname[0]}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--text)" }}>{app.name} {app.surname}</p>
+                          <p style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{app.email}</p>
+                          <p style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: "2px" }}>
+                            {app.documentName && <span>📎 {app.documentName} · </span>}
+                            {new Date(app.submittedAt).toLocaleDateString("pl-PL")}
+                          </p>
+                        </div>
+                        <span style={{ background: st.bg, color: st.color, fontSize: "0.72rem", fontWeight: 700, padding: "4px 10px", borderRadius: "20px", flexShrink: 0 }}>
+                          {st.label}
+                        </span>
+                        <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Szczegóły →</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
 
@@ -239,9 +433,17 @@ export default function AdminPage() {
               </div>
             </div>
           )}
-
         </div>
       </div>
+
+      {selectedApp && (
+        <ApplicationModal
+          app={selectedApp}
+          onClose={() => setSelectedApp(null)}
+          onApprove={handleApprove}
+          onReject={handleReject}
+        />
+      )}
 
       {toast && <div className="toast">{toast}</div>}
     </div>
