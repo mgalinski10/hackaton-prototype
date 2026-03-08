@@ -43,11 +43,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const stored = loadUser();
     if (!stored) return;
-    // Check if role was upgraded by admin
+    // Upgrade USER → VOLUNTEER if admin approved the application
+    // Never downgrade existing VOLUNTEER or ADMIN roles
+    if (stored.role !== "USER") {
+      setUser(stored);
+      return;
+    }
     fetch(`/api/user-role?email=${encodeURIComponent(stored.email)}`)
       .then((r) => r.json())
       .then(({ role }) => {
-        const upgraded = role ? { ...stored, role } : stored;
+        const upgraded = role === "VOLUNTEER" ? { ...stored, role } : stored;
         setUser(upgraded);
         saveUser(upgraded);
       })

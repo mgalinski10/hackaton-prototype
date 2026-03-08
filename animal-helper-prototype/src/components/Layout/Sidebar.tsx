@@ -45,7 +45,7 @@ export default function Sidebar() {
       <nav style={{ flex: 1, padding: "12px 12px 0", display: "flex", flexDirection: "column", gap: "4px" }}>
         <NavItem href="/" icon={<Map size={16} />} label="Mapa schronisk" />
 
-        {user && (
+        {user && user.role !== "ADMIN" && (
           <NavItem href="/dashboard" icon={<LayoutDashboard size={16} />} label="Dashboard" />
         )}
 
