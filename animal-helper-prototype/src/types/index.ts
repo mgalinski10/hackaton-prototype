@@ -19,6 +19,34 @@ export interface Review {
   photoUrl?: string;
   createdAt: string;
   surveyAnswers?: SurveyAnswer[];
+  trustScore?: number;
+  trustReason?: string;
+  isHidden?: boolean;
+}
+
+export type FlagReason =
+  | "fake"
+  | "vulgar"
+  | "spam"
+  | "no_contact"
+  | "other";
+
+export interface FlaggedReview {
+  id: string;
+  reviewId: string;
+  shelterId: string;
+  shelterName: string;
+  reviewAuthorName: string;
+  reviewRating: number;
+  reviewComment: string;
+  reviewTrustScore?: number;
+  flaggedByEmail: string;
+  flaggedByName: string;
+  flaggedAt: string;
+  reason: FlagReason;
+  reasonNote?: string;
+  status: "PENDING" | "DISMISSED" | "HIDDEN";
+  resolvedAt?: string;
 }
 
 export interface SurveyAnswer {

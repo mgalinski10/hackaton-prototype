@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { mockShelters } from "@/data/mockData";
-import { InspectionTask } from "@/types";
+import { InspectionTask, FlaggedReview } from "@/types";
 import ReviewForm from "@/components/Review/ReviewForm";
 
 // Local volunteer shift data (no longer in mockData)
@@ -21,7 +21,7 @@ const mockVolunteerShifts = [
 import {
   PawPrint, ArrowLeft, Clock, Star, Heart, Calendar,
   TrendingUp, Award, CheckCircle2, MapPin, ChevronRight,
-  AlertTriangle, TrendingDown, ClipboardCheck,
+  AlertTriangle, TrendingDown, ClipboardCheck, Flag,
 } from "lucide-react";
 
 export default function DashboardPage() {
@@ -29,6 +29,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [inspectionTasks, setInspectionTasks] = useState<InspectionTask[]>([]);
   const [reviewTask, setReviewTask] = useState<InspectionTask | null>(null);
+  const [myFlags, setMyFlags] = useState<FlaggedReview[]>([]);
 
   useEffect(() => {
     if (!user) router.push("/login");
@@ -39,6 +40,10 @@ export default function DashboardPage() {
     fetch(`/api/tasks`)
       .then((r) => r.json())
       .then((data: InspectionTask[]) => setInspectionTasks(data))
+      .catch(() => {});
+    fetch(`/api/flagged-reviews?flaggedBy=${encodeURIComponent(user.email)}`)
+      .then((r) => r.json())
+      .then((data: FlaggedReview[]) => setMyFlags(data))
       .catch(() => {});
   }, [user]);
 
@@ -308,6 +313,33 @@ export default function DashboardPage() {
                   <span style={{ fontSize: "0.65rem", fontWeight: 700, background: "rgba(34,197,94,0.1)", color: "#22c55e", padding: "2px 8px", borderRadius: "20px", flexShrink: 0 }}>UKOŃCZONA</span>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* My flagged reviews */}
+        {isVolunteer && myFlags.length > 0 && (
+          <div style={{ marginTop: "20px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", padding: "20px" }}>
+            <h2 style={{ fontWeight: 700, fontSize: "1rem", color: "var(--text)", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <Flag size={18} style={{ color: "#a855f7" }} /> Moje zgłoszenia recenzji
+            </h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {myFlags.map((flag) => {
+                const statusColor = flag.status === "PENDING" ? "#f59e0b" : flag.status === "HIDDEN" ? "#ef4444" : "#22c55e";
+                const statusLabel = flag.status === "PENDING" ? "Oczekuje" : flag.status === "HIDDEN" ? "Recenzja ukryta" : "Odrzucono";
+                return (
+                  <div key={flag.id} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", background: "var(--surface-2)", borderRadius: "10px" }}>
+                    <Flag size={13} style={{ color: "#a855f7", flexShrink: 0 }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{flag.shelterName}</p>
+                      <p style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
+                        {flag.reviewAuthorName} · ★{flag.reviewRating} · {new Date(flag.flaggedAt).toLocaleDateString("pl-PL")}
+                      </p>
+                    </div>
+                    <span style={{ fontSize: "0.65rem", fontWeight: 700, background: `${statusColor}18`, color: statusColor, padding: "2px 8px", borderRadius: "20px", flexShrink: 0 }}>{statusLabel}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { MockVolunteer } from "@/types";
 import { detectAnomaly, pickNearestVolunteer } from "@/lib/anomalyDetection";
+import { computeTrustScore } from "@/lib/trustScore";
 
 const DATA_FILE = path.join(process.cwd(), "data", "reviews.json");
 const TASKS_FILE = path.join(process.cwd(), "data", "tasks.json");
@@ -54,8 +55,12 @@ function readVolunteers(): MockVolunteer[] {
 
 export async function GET(request: NextRequest) {
   const shelterId = request.nextUrl.searchParams.get("shelterId");
+  const includeHidden = request.nextUrl.searchParams.get("includeHidden") === "true";
   const all = readAll();
-  const filtered = shelterId ? all.filter((r) => r.shelterId === shelterId) : all;
+  let filtered = shelterId ? all.filter((r) => r.shelterId === shelterId) : all;
+  if (!includeHidden) {
+    filtered = filtered.filter((r) => !r.isHidden);
+  }
   return NextResponse.json(filtered);
 }
 
@@ -83,6 +88,15 @@ export async function POST(request: NextRequest) {
     photoUrl = `/uploads/reviews/${filename}`;
   }
 
+  // Compute trust score only for regular user reviews (not volunteer reviews)
+  let trustScore: number | undefined;
+  let trustReason: string | undefined;
+  if (!isVolunteerReview) {
+    const ts = computeTrustScore(rating, comment);
+    trustScore = ts.score;
+    trustReason = ts.reason;
+  }
+
   const review = {
     shelterId,
     id: `r-${Date.now()}`,
@@ -93,6 +107,8 @@ export async function POST(request: NextRequest) {
     isVolunteerReview,
     photoUrl,
     createdAt: new Date().toISOString(),
+    trustScore,
+    trustReason,
   };
 
   const all = readAll();

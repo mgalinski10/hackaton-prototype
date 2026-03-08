@@ -7,8 +7,9 @@ import ReviewForm from "@/components/Review/ReviewForm";
 import {
   X, MapPin, Phone, Mail, CheckCircle2, AlertCircle,
   MessageSquarePlus, ChevronDown, ChevronUp,
-  Crown, FileText, Shield, TrendingUp, Skull, Clock, ImageIcon,
+  Crown, FileText, Shield, TrendingUp, Skull, Clock, Flag,
 } from "lucide-react";
+import { FlagReason } from "@/types";
 
 interface Props {
   shelter: Shelter;
@@ -33,6 +34,33 @@ function getStayColor(days: number): string {
   return "#ef4444";
 }
 
+function TrustBadge({ score, reason }: { score: number; reason: string }) {
+  const color = score >= 80 ? "#22c55e" : score >= 55 ? "#f59e0b" : "#ef4444";
+  const bg = score >= 80 ? "rgba(34,197,94,0.1)" : score >= 55 ? "rgba(245,158,11,0.1)" : "rgba(239,68,68,0.1)";
+  const label = score >= 80 ? "Wiarygodna" : score >= 55 ? "Neutralna" : "Podejrzana";
+  return (
+    <span
+      title={reason}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: "4px",
+        background: bg, color, fontSize: "0.6rem", fontWeight: 700,
+        padding: "2px 7px", borderRadius: "20px", cursor: "help",
+        border: `1px solid ${color}33`,
+      }}
+    >
+      AI · {label} {score}
+    </span>
+  );
+}
+
+const FLAG_REASONS: { value: FlagReason; label: string }[] = [
+  { value: "fake", label: "Fałszywa recenzja / brak kontaktu ze schroniskiem" },
+  { value: "vulgar", label: "Wulgarne lub obraźliwe treści" },
+  { value: "spam", label: "Spam / reklama" },
+  { value: "no_contact", label: "Autor prawdopodobnie nie odwiedził schroniska" },
+  { value: "other", label: "Inne" },
+];
+
 export default function ShelterPanel({ shelter, onClose }: Props) {
   const { user } = useAuth();
   const [showReviewForm, setShowReviewForm] = useState(false);
@@ -40,6 +68,11 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
   const [expandedReviews, setExpandedReviews] = useState(false);
   const [imgError, setImgError] = useState(false);
   const [dynamicReviews, setDynamicReviews] = useState<Review[]>([]);
+  const [flaggingReview, setFlaggingReview] = useState<Review | null>(null);
+  const [flagReason, setFlagReason] = useState<FlagReason>("fake");
+  const [flagNote, setFlagNote] = useState("");
+  const [flagLoading, setFlagLoading] = useState(false);
+  const [flaggedIds, setFlaggedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetch(`/api/reviews?shelterId=${shelter.id}`)
@@ -67,6 +100,38 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
     setShowReviewForm(false);
     setToast("Opinia została dodana! Dziękujemy.");
     setTimeout(() => setToast(""), 3000);
+  };
+
+  const submitFlag = async () => {
+    if (!flaggingReview || !user) return;
+    setFlagLoading(true);
+    try {
+      await fetch("/api/flagged-reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reviewId: flaggingReview.id,
+          shelterId: shelter.id,
+          shelterName: shelter.name,
+          reviewAuthorName: `${flaggingReview.name} ${flaggingReview.surname}`,
+          reviewRating: flaggingReview.rating,
+          reviewComment: flaggingReview.comment,
+          reviewTrustScore: flaggingReview.trustScore,
+          flaggedByEmail: user.email,
+          flaggedByName: `${user.name} ${user.surname}`,
+          reason: flagReason,
+          reasonNote: flagNote || undefined,
+        }),
+      });
+      setFlaggedIds((prev) => new Set([...prev, flaggingReview.id]));
+      setFlaggingReview(null);
+      setFlagNote("");
+      setFlagReason("fake");
+      setToast("Zgłoszenie wysłane do administratora.");
+      setTimeout(() => setToast(""), 3000);
+    } finally {
+      setFlagLoading(false);
+    }
   };
 
   const adoptionColor = getAdoptionColor(shelter.adoptionRate);
@@ -482,11 +547,16 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
                     }}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
-                      <div>
-                        <span style={{ fontWeight: 600, fontSize: "0.875rem", color: "var(--text)" }}>
-                          {review.name} {review.surname}
-                        </span>
-                        <p style={{ fontSize: "0.7rem", color: "var(--text-muted)", marginTop: "2px" }}>
+                      <div style={{ flex: 1, minWidth: 0, paddingRight: "8px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap", marginBottom: "2px" }}>
+                          <span style={{ fontWeight: 600, fontSize: "0.875rem", color: "var(--text)" }}>
+                            {review.name} {review.surname}
+                          </span>
+                          {review.trustScore !== undefined && (
+                            <TrustBadge score={review.trustScore} reason={review.trustReason ?? ""} />
+                          )}
+                        </div>
+                        <p style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
                           {new Date(review.createdAt).toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric" })}
                         </p>
                       </div>
@@ -502,6 +572,20 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
                           alt="Zdjęcie z opinii"
                           style={{ width: "100%", maxHeight: "220px", objectFit: "cover", display: "block" }}
                         />
+                      </div>
+                    )}
+                    {(user?.role === "VOLUNTEER" || user?.role === "ADMIN") && (
+                      <div style={{ marginTop: "10px", display: "flex", justifyContent: "flex-end" }}>
+                        {flaggedIds.has(review.id) ? (
+                          <span style={{ fontSize: "0.7rem", color: "var(--text-muted)", fontStyle: "italic" }}>Zgłoszono</span>
+                        ) : (
+                          <button
+                            onClick={() => { setFlaggingReview(review); setFlagReason("fake"); setFlagNote(""); }}
+                            style={{ display: "flex", alignItems: "center", gap: "4px", background: "none", border: "1px solid var(--border)", borderRadius: "8px", padding: "4px 10px", color: "var(--text-muted)", fontSize: "0.7rem", cursor: "pointer" }}
+                          >
+                            <Flag size={11} /> Zgłoś
+                          </button>
+                        )}
                       </div>
                     )}
                   </div>
@@ -537,6 +621,66 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
 
       {showReviewForm && (
         <ReviewForm shelter={shelter} onClose={() => setShowReviewForm(false)} onSubmitted={handleSubmitted} />
+      )}
+
+      {/* Flag modal */}
+      {flaggingReview && (
+        <div
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.75)", zIndex: 20000, display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}
+          onClick={(e) => e.target === e.currentTarget && setFlaggingReview(null)}
+        >
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", width: "100%", maxWidth: "460px", padding: "24px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+              <h3 style={{ fontWeight: 700, fontSize: "1rem", color: "var(--text)", display: "flex", alignItems: "center", gap: "8px" }}>
+                <Flag size={16} style={{ color: "#ef4444" }} /> Zgłoś recenzję
+              </h3>
+              <button onClick={() => setFlaggingReview(null)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}><X size={18} /></button>
+            </div>
+
+            <div style={{ background: "var(--surface-2)", borderRadius: "12px", padding: "12px 14px", marginBottom: "16px", fontSize: "0.82rem", color: "var(--text-muted)" }}>
+              <strong style={{ color: "var(--text)" }}>{flaggingReview.name} {flaggingReview.surname}</strong> · ★{flaggingReview.rating}
+              {flaggingReview.trustScore !== undefined && (
+                <span style={{ marginLeft: "8px" }}>
+                  <TrustBadge score={flaggingReview.trustScore} reason={flaggingReview.trustReason ?? ""} />
+                </span>
+              )}
+              {flaggingReview.comment && <p style={{ marginTop: "6px", fontStyle: "italic" }}>"{flaggingReview.comment.slice(0, 120)}{flaggingReview.comment.length > 120 ? "…" : ""}"</p>}
+            </div>
+
+            <p style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "10px" }}>Powód zgłoszenia</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "16px" }}>
+              {FLAG_REASONS.map((r) => (
+                <label key={r.value} style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", padding: "9px 12px", borderRadius: "10px", background: flagReason === r.value ? "rgba(239,68,68,0.08)" : "var(--surface-2)", border: `1px solid ${flagReason === r.value ? "rgba(239,68,68,0.3)" : "var(--border)"}` }}>
+                  <input type="radio" name="flagReason" value={r.value} checked={flagReason === r.value} onChange={() => setFlagReason(r.value)} style={{ accentColor: "#ef4444" }} />
+                  <span style={{ fontSize: "0.85rem", color: "var(--text)" }}>{r.label}</span>
+                </label>
+              ))}
+            </div>
+
+            {flagReason === "other" && (
+              <textarea
+                value={flagNote}
+                onChange={(e) => setFlagNote(e.target.value)}
+                placeholder="Opisz krótko powód zgłoszenia..."
+                rows={3}
+                style={{ width: "100%", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "10px", padding: "10px 12px", color: "var(--text)", fontSize: "0.875rem", resize: "vertical", outline: "none", fontFamily: "inherit", marginBottom: "16px" }}
+              />
+            )}
+
+            <div style={{ display: "flex", gap: "8px" }}>
+              <button onClick={() => setFlaggingReview(null)} style={{ flex: 1, background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "12px", padding: "11px", color: "var(--text-muted)", fontSize: "0.875rem", cursor: "pointer", fontWeight: 600 }}>
+                Anuluj
+              </button>
+              <button
+                onClick={submitFlag}
+                disabled={flagLoading}
+                style={{ flex: 1, background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.35)", borderRadius: "12px", padding: "11px", color: "#ef4444", fontSize: "0.875rem", cursor: "pointer", fontWeight: 700 }}
+              >
+                {flagLoading ? "Wysyłanie…" : "Wyślij zgłoszenie"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {toast && <div className="toast">{toast}</div>}

@@ -8,9 +8,9 @@ import {
   PawPrint, ArrowLeft, ShieldCheck, Users, Building2,
   CheckCircle2, AlertCircle, TrendingUp, Heart,
   BarChart3, FileText, Bell, X, ExternalLink, MessageSquare,
-  TrendingDown, AlertTriangle, ClipboardList,
+  TrendingDown, AlertTriangle, Flag, EyeOff,
 } from "lucide-react";
-import { InspectionTask } from "@/types";
+import { InspectionTask, FlaggedReview } from "@/types";
 
 interface Application {
   id: string;
@@ -197,7 +197,8 @@ export default function AdminPage() {
   const router = useRouter();
   const [applications, setApplications] = useState<Application[]>([]);
   const [tasks, setTasks] = useState<InspectionTask[]>([]);
-  const [activeSection, setActiveSection] = useState<"overview" | "applications" | "shelters" | "alerts">("overview");
+  const [flaggedReviews, setFlaggedReviews] = useState<FlaggedReview[]>([]);
+  const [activeSection, setActiveSection] = useState<"overview" | "applications" | "shelters" | "alerts" | "reports">("overview");
   const [toast, setToast] = useState("");
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
 
@@ -213,6 +214,10 @@ export default function AdminPage() {
     fetch("/api/tasks")
       .then((r) => r.json())
       .then((data: InspectionTask[]) => setTasks(data))
+      .catch(() => {});
+    fetch("/api/flagged-reviews")
+      .then((r) => r.json())
+      .then((data: FlaggedReview[]) => setFlaggedReviews(data))
       .catch(() => {});
   }, []);
 
@@ -253,12 +258,34 @@ export default function AdminPage() {
   };
 
   const activeAlerts = tasks.filter((t) => t.status !== "COMPLETED").length;
+  const pendingReports = flaggedReviews.filter((f) => f.status === "PENDING").length;
+
+  const handleResolveFlag = async (id: string, status: "DISMISSED" | "HIDDEN") => {
+    const res = await fetch(`/api/flagged-reviews/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    if (!res.ok) return;
+    const updated: FlaggedReview = await res.json();
+    setFlaggedReviews((prev) => prev.map((f) => f.id === id ? updated : f));
+    showToast(status === "HIDDEN" ? "Recenzja ukryta — nie będzie widoczna dla użytkowników." : "Zgłoszenie odrzucone.");
+  };
+
+  const FLAG_REASON_LABELS: Record<string, string> = {
+    fake: "Fałszywa recenzja",
+    vulgar: "Wulgarne treści",
+    spam: "Spam / reklama",
+    no_contact: "Brak kontaktu ze schroniskiem",
+    other: "Inne",
+  };
 
   const navItems = [
     { key: "overview",      label: "Przegląd",    icon: <BarChart3 size={16} /> },
     { key: "applications",  label: `Aplikacje${pendingApps > 0 ? ` (${pendingApps})` : ""}`, icon: <FileText size={16} /> },
     { key: "shelters",      label: "Schroniska",  icon: <Building2 size={16} /> },
     { key: "alerts",        label: `Alerty${activeAlerts > 0 ? ` (${activeAlerts})` : ""}`, icon: <AlertTriangle size={16} /> },
+    { key: "reports",       label: `Zgłoszenia${pendingReports > 0 ? ` (${pendingReports})` : ""}`, icon: <Flag size={16} /> },
   ] as const;
 
   return (
@@ -318,13 +345,14 @@ export default function AdminPage() {
           {activeSection === "overview" && (
             <div>
               <h1 style={{ fontWeight: 800, fontSize: "1.5rem", color: "var(--text)", marginBottom: "24px" }}>Przegląd systemu</h1>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "14px", marginBottom: "28px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px", marginBottom: "14px" }}>
                 {[
                   { icon: <Building2 size={20} style={{ color: "#06B6D4" }} />, value: mockShelters.length, label: "Schronisk", sub: `${verifiedCount} zweryfikowanych`, color: "#06B6D4" },
                   { icon: <PawPrint size={20} style={{ color: "var(--yellow)" }} />, value: totalAnimals, label: "Zwierząt łącznie", sub: `z ${totalCapacity} miejsc (${Math.round(totalAnimals / totalCapacity * 100)}%)`, color: "var(--yellow)" },
                   { icon: <Heart size={20} style={{ color: "#22c55e" }} />, value: totalAdoptedThisYear, label: "Adoptowanych w roku", sub: "skuteczne adopcje", color: "#22c55e" },
                   { icon: <Users size={20} style={{ color: "#f59e0b" }} />, value: pendingApps, label: "Aplikacji", sub: "czeka na weryfikację", color: "#f59e0b" },
                   { icon: <AlertTriangle size={20} style={{ color: "#ef4444" }} />, value: activeAlerts, label: "Aktywnych alertów", sub: "podejrzana aktywność", color: "#ef4444" },
+                  { icon: <Flag size={20} style={{ color: "#a855f7" }} />, value: pendingReports, label: "Zgłoszeń", sub: "recenzji do moderacji", color: "#a855f7" },
                 ].map((stat, i) => (
                   <div key={i} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "16px", padding: "18px" }}>
                     <div style={{ marginBottom: "10px" }}>{stat.icon}</div>
@@ -468,6 +496,83 @@ export default function AdminPage() {
                             </div>
                           </div>
                         </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* REPORTS */}
+          {activeSection === "reports" && (
+            <div>
+              <h1 style={{ fontWeight: 800, fontSize: "1.5rem", color: "var(--text)", marginBottom: "8px" }}>Zgłoszenia recenzji</h1>
+              <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginBottom: "24px" }}>
+                Recenzje oznaczone przez wolontariuszy jako podejrzane. Możesz odrzucić zgłoszenie lub ukryć recenzję.
+              </p>
+
+              {flaggedReviews.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--text-muted)" }}>
+                  <Flag size={40} style={{ margin: "0 auto 16px", opacity: 0.3 }} />
+                  Brak zgłoszonych recenzji.
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+                  {flaggedReviews.map((flag) => {
+                    const isPending = flag.status === "PENDING";
+                    const trustColor = flag.reviewTrustScore === undefined ? "var(--text-muted)" : flag.reviewTrustScore >= 80 ? "#22c55e" : flag.reviewTrustScore >= 55 ? "#f59e0b" : "#ef4444";
+                    return (
+                      <div key={flag.id} style={{ background: "var(--surface)", border: `1px solid ${isPending ? "rgba(239,68,68,0.25)" : "var(--border)"}`, borderRadius: "16px", padding: "18px 20px", opacity: isPending ? 1 : 0.6 }}>
+                        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px", marginBottom: "10px", flexWrap: "wrap" }}>
+                          <div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: "4px" }}>
+                              <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--text)" }}>{flag.shelterName}</span>
+                              <span style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444", fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: "20px" }}>
+                                {FLAG_REASON_LABELS[flag.reason] ?? flag.reason}
+                              </span>
+                              {flag.reviewTrustScore !== undefined && (
+                                <span style={{ background: `${trustColor}18`, color: trustColor, fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: "20px" }}>
+                                  AI Trust: {flag.reviewTrustScore}
+                                </span>
+                              )}
+                              <span style={{ background: isPending ? "rgba(245,158,11,0.1)" : flag.status === "HIDDEN" ? "rgba(239,68,68,0.1)" : "rgba(34,197,94,0.1)", color: isPending ? "#f59e0b" : flag.status === "HIDDEN" ? "#ef4444" : "#22c55e", fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: "20px" }}>
+                                {isPending ? "Oczekuje" : flag.status === "HIDDEN" ? "Ukryta" : "Odrzucono"}
+                              </span>
+                            </div>
+                            <p style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
+                              Autor: <strong style={{ color: "var(--text)" }}>{flag.reviewAuthorName}</strong> · ★{flag.reviewRating}
+                              {" · "}Zgłosił: <strong style={{ color: "var(--text)" }}>{flag.flaggedByName}</strong>
+                              {" · "}{new Date(flag.flaggedAt).toLocaleDateString("pl-PL")}
+                            </p>
+                          </div>
+                        </div>
+                        {flag.reviewComment && (
+                          <div style={{ background: "var(--surface-2)", borderRadius: "10px", padding: "10px 14px", fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "12px", fontStyle: "italic" }}>
+                            "{flag.reviewComment.slice(0, 200)}{flag.reviewComment.length > 200 ? "…" : ""}"
+                          </div>
+                        )}
+                        {flag.reasonNote && (
+                          <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: "12px" }}>
+                            Notatka wolontariusza: <em>{flag.reasonNote}</em>
+                          </p>
+                        )}
+                        {isPending && (
+                          <div style={{ display: "flex", gap: "8px" }}>
+                            <button
+                              onClick={() => handleResolveFlag(flag.id, "DISMISSED")}
+                              style={{ display: "flex", alignItems: "center", gap: "6px", background: "rgba(34,197,94,0.1)", border: "1px solid rgba(34,197,94,0.3)", borderRadius: "10px", padding: "8px 14px", color: "#22c55e", fontWeight: 700, fontSize: "0.82rem", cursor: "pointer" }}
+                            >
+                              <CheckCircle2 size={14} /> Odrzuć zgłoszenie
+                            </button>
+                            <button
+                              onClick={() => handleResolveFlag(flag.id, "HIDDEN")}
+                              style={{ display: "flex", alignItems: "center", gap: "6px", background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: "10px", padding: "8px 14px", color: "#ef4444", fontWeight: 700, fontSize: "0.82rem", cursor: "pointer" }}
+                            >
+                              <EyeOff size={14} /> Ukryj recenzję
+                            </button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
