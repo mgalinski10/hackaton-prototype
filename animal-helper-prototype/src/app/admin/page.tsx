@@ -3,10 +3,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { mockShelters, mockAnimals, mockVolunteerShifts } from "@/data/mockData";
+import { mockShelters } from "@/data/mockData";
 import {
   PawPrint, ArrowLeft, ShieldCheck, Users, Building2,
-  CheckCircle2, AlertCircle, TrendingUp, Heart, Clock,
+  CheckCircle2, AlertCircle, TrendingUp, Heart,
   BarChart3, FileText, Bell,
 } from "lucide-react";
 
@@ -37,7 +37,7 @@ export default function AdminPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [applications, setApplications] = useState(MOCK_APPLICATIONS);
-  const [activeSection, setActiveSection] = useState<"overview" | "applications" | "shelters" | "animals">("overview");
+  const [activeSection, setActiveSection] = useState<"overview" | "applications" | "shelters">("overview");
   const [toast, setToast] = useState("");
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function AdminPage() {
   const totalAnimals = mockShelters.reduce((acc, s) => acc + (s.currentAnimals ?? 0), 0);
   const totalCapacity = mockShelters.reduce((acc, s) => acc + (s.capacity ?? 0), 0);
   const verifiedCount = mockShelters.filter((s) => s.verificationStatus === "VERIFIED").length;
-  const availableAnimals = mockAnimals.filter((a) => a.status === "available").length;
+  const totalAdoptedThisYear = mockShelters.reduce((acc, s) => acc + s.animalsAdoptedThisYear, 0);
   const pendingApps = applications.filter((a) => a.status === "pending").length;
 
   const handleAppAction = (id: string, action: "approved" | "rejected") => {
@@ -62,7 +62,6 @@ export default function AdminPage() {
     { key: "overview", label: "Przegląd", icon: <BarChart3 size={16} /> },
     { key: "applications", label: `Aplikacje ${pendingApps > 0 ? `(${pendingApps})` : ""}`, icon: <FileText size={16} /> },
     { key: "shelters", label: "Schroniska", icon: <Building2 size={16} /> },
-    { key: "animals", label: "Zwierzęta", icon: <PawPrint size={16} /> },
   ] as const;
 
   return (
@@ -121,7 +120,7 @@ export default function AdminPage() {
                 {[
                   { icon: <Building2 size={20} style={{ color: "#06B6D4" }} />, value: mockShelters.length, label: "Schronisk", sub: `${verifiedCount} zweryfikowanych`, color: "#06B6D4" },
                   { icon: <PawPrint size={20} style={{ color: "var(--yellow)" }} />, value: totalAnimals, label: "Zwierząt łącznie", sub: `z ${totalCapacity} miejsc (${Math.round(totalAnimals / totalCapacity * 100)}%)`, color: "var(--yellow)" },
-                  { icon: <Heart size={20} style={{ color: "#22c55e" }} />, value: availableAnimals, label: "Do adopcji", sub: "czekają na dom", color: "#22c55e" },
+                  { icon: <Heart size={20} style={{ color: "#22c55e" }} />, value: totalAdoptedThisYear, label: "Adoptowanych w roku", sub: "skuteczne adopcje", color: "#22c55e" },
                   { icon: <Users size={20} style={{ color: "#f59e0b" }} />, value: pendingApps, label: "Aplikacji", sub: "czeka na weryfikację", color: "#f59e0b" },
                 ].map((stat, i) => (
                   <div key={i} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "16px", padding: "18px" }}>
@@ -241,34 +240,6 @@ export default function AdminPage() {
             </div>
           )}
 
-          {/* ANIMALS */}
-          {activeSection === "animals" && (
-            <div>
-              <h1 style={{ fontWeight: 800, fontSize: "1.5rem", color: "var(--text)", marginBottom: "24px" }}>Zwierzęta w bazie</h1>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
-                {mockAnimals.map((animal) => {
-                  const statusInfo = { available: { label: "Do adopcji", color: "#22c55e" }, reserved: { label: "Zarezerwowane", color: "#f59e0b" }, adopted: { label: "Adoptowane", color: "#888" } }[animal.status];
-                  return (
-                    <div key={animal.id} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "14px", overflow: "hidden" }}>
-                      <div style={{ position: "relative" }}>
-                        <img src={animal.imageUrl} alt={animal.name} style={{ width: "100%", height: "100px", objectFit: "cover" }} />
-                        <span style={{ position: "absolute", top: "6px", right: "6px", background: "rgba(0,0,0,0.7)", color: statusInfo.color, fontSize: "0.62rem", fontWeight: 700, padding: "2px 7px", borderRadius: "20px" }}>
-                          {statusInfo.label}
-                        </span>
-                      </div>
-                      <div style={{ padding: "10px" }}>
-                        <p style={{ fontWeight: 700, fontSize: "0.875rem", color: "var(--text)" }}>{animal.name}</p>
-                        <p style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>{animal.breed}</p>
-                        <p style={{ fontSize: "0.7rem", color: "var(--text-muted)", marginTop: "4px" }}>
-                          {animal.species === "dog" ? "🐕" : "🐈"} · {animal.gender === "male" ? "Samiec" : "Samica"} · {Math.floor(animal.age / 12)}l {animal.age % 12}m
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
         </div>
       </div>
 

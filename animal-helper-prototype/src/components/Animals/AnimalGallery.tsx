@@ -1,8 +1,28 @@
 "use client";
 import { useState } from "react";
-import { Animal } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import { Heart, X, PawPrint, CheckCircle2, Calendar } from "lucide-react";
+
+// Local type definitions (Animal type removed from global types)
+type AnimalSpecies = "dog" | "cat" | "other";
+type AnimalStatus = "available" | "reserved" | "adopted";
+type AnimalGender = "male" | "female";
+
+interface Animal {
+  id: string;
+  shelterId: string;
+  name: string;
+  species: AnimalSpecies;
+  breed: string;
+  age: number;
+  gender: AnimalGender;
+  imageUrl: string;
+  description: string;
+  status: AnimalStatus;
+  vaccinated: boolean;
+  sterilized: boolean;
+  arrivedAt: string;
+}
 
 interface Props {
   animals: Animal[];

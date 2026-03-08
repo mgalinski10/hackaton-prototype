@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { PawPrint, LogIn, LogOut, UserCircle, ShieldCheck, Heart, LayoutDashboard, Sparkles } from "lucide-react";
+import { PawPrint, LogIn, LogOut, UserCircle, ShieldCheck, Heart, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 
 export default function Navbar() {
@@ -15,8 +15,13 @@ export default function Navbar() {
         borderBottom: "1px solid var(--border)",
         position: "relative",
         zIndex: 1000,
+        height: "64px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "0 24px",
+        flexShrink: 0,
       }}
-      className="flex items-center justify-between px-6 h-14 flex-shrink-0"
     >
       {/* Logo */}
       <Link href="/" className="flex items-center gap-2 no-underline">
@@ -26,52 +31,49 @@ export default function Navbar() {
         </span>
       </Link>
 
-      {/* Center nav */}
-      <div className="flex items-center gap-2">
-        <Link href="/adopt-match" style={{ textDecoration: "none" }}>
-          <button
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm"
-            style={{ background: "transparent", border: "1px solid rgba(6,182,212,0.3)", borderRadius: "10px", color: "#06B6D4", cursor: "pointer", fontWeight: 600 }}
-          >
-            <Sparkles size={14} /> Dopasuj zwierzę AI
-          </button>
-        </Link>
-      </div>
-
       {/* Right */}
       <div className="flex items-center gap-3">
         {user ? (
           <>
             {user.role === "USER" && (
-              <Link href="/volunteer-apply">
+              <Link href="/volunteer-apply" style={{ textDecoration: "none" }}>
                 <button
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold"
+                  className="flex items-center gap-1.5 text-sm font-semibold"
                   style={{
                     background: "rgba(250,204,21,0.1)", border: "1px solid rgba(250,204,21,0.3)",
                     color: "var(--yellow)", cursor: "pointer", borderRadius: "10px",
+                    padding: "8px 14px",
                   }}
                 >
                   <Heart size={14} />
-                  Wolontariusz
+                  Zostań wolontariuszem
                 </button>
               </Link>
             )}
 
-            <Link href="/dashboard">
+            <Link href="/dashboard" style={{ textDecoration: "none" }}>
               <button
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm"
-                style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "10px", color: "var(--text)", cursor: "pointer" }}
+                className="flex items-center gap-1.5 text-sm"
+                style={{
+                  background: "var(--surface-2)", border: "1px solid var(--border)",
+                  borderRadius: "10px", color: "var(--text)", cursor: "pointer",
+                  padding: "8px 14px",
+                }}
               >
                 <LayoutDashboard size={14} style={{ color: "var(--yellow)" }} />
                 Dashboard
               </button>
             </Link>
 
-            <div className="relative">
+            <div style={{ position: "relative" }}>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm"
-                style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "10px", color: "var(--text)", cursor: "pointer" }}
+                className="flex items-center gap-2 text-sm"
+                style={{
+                  background: "var(--surface-2)", border: "1px solid var(--border)",
+                  borderRadius: "10px", color: "var(--text)", cursor: "pointer",
+                  padding: "8px 14px",
+                }}
               >
                 <UserCircle size={16} style={{ color: "var(--yellow)" }} />
                 <span>{user.name}</span>
@@ -87,7 +89,11 @@ export default function Navbar() {
 
               {menuOpen && (
                 <div
-                  style={{ position: "absolute", right: 0, top: "calc(100% + 8px)", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "14px", minWidth: "180px", zIndex: 9999, overflow: "hidden" }}
+                  style={{
+                    position: "absolute", right: 0, top: "calc(100% + 8px)",
+                    background: "var(--surface)", border: "1px solid var(--border)",
+                    borderRadius: "14px", minWidth: "200px", zIndex: 9999, overflow: "hidden",
+                  }}
                   onMouseLeave={() => setMenuOpen(false)}
                 >
                   <div style={{ padding: "10px 14px", borderBottom: "1px solid var(--border)", fontSize: "0.8rem", color: "var(--text-muted)" }}>
@@ -95,7 +101,10 @@ export default function Navbar() {
                   </div>
                   {user.role === "USER" && (
                     <Link href="/volunteer-apply" onClick={() => setMenuOpen(false)} style={{ textDecoration: "none" }}>
-                      <div className="flex items-center gap-2 w-full px-3 py-2 text-sm" style={{ color: "var(--yellow)", cursor: "pointer", padding: "10px 14px", borderBottom: "1px solid var(--border)" }}>
+                      <div
+                        className="flex items-center gap-2"
+                        style={{ color: "var(--yellow)", cursor: "pointer", padding: "10px 14px", borderBottom: "1px solid var(--border)", fontSize: "0.875rem", fontWeight: 600 }}
+                      >
                         <Heart size={14} />
                         Zostań wolontariuszem
                       </div>
@@ -103,15 +112,22 @@ export default function Navbar() {
                   )}
                   {user.role === "ADMIN" && (
                     <Link href="/admin" onClick={() => setMenuOpen(false)} style={{ textDecoration: "none" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--yellow)", cursor: "pointer", padding: "10px 14px", borderBottom: "1px solid var(--border)", fontSize: "0.875rem", fontWeight: 600 }}>
+                      <div
+                        className="flex items-center gap-2"
+                        style={{ color: "var(--yellow)", cursor: "pointer", padding: "10px 14px", borderBottom: "1px solid var(--border)", fontSize: "0.875rem", fontWeight: 600 }}
+                      >
                         <ShieldCheck size={14} /> Panel Admina
                       </div>
                     </Link>
                   )}
                   <button
                     onClick={() => { logout(); setMenuOpen(false); }}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm"
-                    style={{ background: "transparent", border: "none", color: "var(--text)", cursor: "pointer", width: "100%", textAlign: "left", padding: "10px 14px" }}
+                    className="flex items-center gap-2 w-full"
+                    style={{
+                      background: "transparent", border: "none", color: "var(--text)",
+                      cursor: "pointer", width: "100%", textAlign: "left",
+                      padding: "10px 14px", fontSize: "0.875rem",
+                    }}
                   >
                     <LogOut size={14} />
                     Wyloguj
@@ -122,19 +138,27 @@ export default function Navbar() {
           </>
         ) : (
           <>
-            <Link href="/login">
+            <Link href="/login" style={{ textDecoration: "none" }}>
               <button
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm"
-                style={{ background: "transparent", border: "1px solid var(--border)", borderRadius: "10px", color: "var(--text)", cursor: "pointer" }}
+                className="flex items-center gap-1.5 text-sm"
+                style={{
+                  background: "transparent", border: "1px solid var(--border)",
+                  borderRadius: "10px", color: "var(--text)", cursor: "pointer",
+                  padding: "8px 14px",
+                }}
               >
                 <LogIn size={14} />
                 Zaloguj
               </button>
             </Link>
-            <Link href="/register">
+            <Link href="/register" style={{ textDecoration: "none" }}>
               <button
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-semibold"
-                style={{ background: "var(--yellow)", color: "#000", border: "none", borderRadius: "10px", cursor: "pointer" }}
+                className="flex items-center gap-1.5 text-sm font-semibold"
+                style={{
+                  background: "var(--yellow)", color: "#000", border: "none",
+                  borderRadius: "10px", cursor: "pointer",
+                  padding: "8px 14px",
+                }}
               >
                 Zarejestruj
               </button>

@@ -1,12 +1,12 @@
 "use client";
 import dynamic from "next/dynamic";
 import { useState } from "react";
-import { mockShelters, mockAnimals } from "@/data/mockData";
+import { mockShelters } from "@/data/mockData";
 import { Shelter } from "@/types";
 import Navbar from "@/components/Layout/Navbar";
 import ShelterPanel from "@/components/Shelter/ShelterPanel";
 import MapSearch from "@/components/Map/MapSearch";
-import { Navigation, PawPrint } from "lucide-react";
+import { Navigation } from "lucide-react";
 
 const ShelterMap = dynamic(() => import("@/components/Map/ShelterMap"), {
   ssr: false,
@@ -29,7 +29,8 @@ function getDistance(lat1: number, lon1: number, lat2: number, lon2: number) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-const totalAvailable = mockAnimals.filter((a) => a.status === "available").length;
+const totalShelters = mockShelters.length;
+const verifiedShelters = mockShelters.filter((s) => s.verificationStatus === "VERIFIED").length;
 
 export default function HomePage() {
   const [selectedShelter, setSelectedShelter] = useState<Shelter | null>(null);
@@ -67,8 +68,8 @@ export default function HomePage() {
       {/* Hero strip */}
       <div style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)", padding: "8px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <p style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}>
-          <span style={{ color: "var(--yellow)", fontWeight: 700 }}>{mockShelters.length}</span> schronisk ·{" "}
-          <span style={{ color: "#22c55e", fontWeight: 700 }}>{totalAvailable}</span> zwierząt szuka domu
+          <span style={{ color: "var(--yellow)", fontWeight: 700 }}>{totalShelters}</span> schronisk w bazie ·{" "}
+          <span style={{ color: "#22c55e", fontWeight: 700 }}>{verifiedShelters}</span> zweryfikowanych
         </p>
         <div style={{ display: "flex", gap: "16px", fontSize: "0.75rem", color: "var(--text-muted)" }}>
           <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
@@ -125,23 +126,6 @@ export default function HomePage() {
             }
             {gpsLoading ? "Szukam..." : "Najbliższe schronisko"}
           </button>
-
-          {/* Adopt match link */}
-          <a
-            href="/adopt-match"
-            style={{
-              display: "flex", alignItems: "center", gap: "8px",
-              background: "var(--surface)", border: "1px solid rgba(250,204,21,0.3)",
-              borderRadius: "12px", padding: "9px 14px",
-              fontSize: "0.8rem", color: "var(--yellow)", fontWeight: 600,
-              textDecoration: "none", boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
-              transition: "border-color 0.2s, background 0.2s",
-            }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(250,204,21,0.08)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = "var(--surface)"; }}
-          >
-            <PawPrint size={14} /> Dopasuj zwierzę AI
-          </a>
 
           {gpsError && (
             <p style={{ fontSize: "0.75rem", color: "var(--red)", background: "var(--surface)", padding: "6px 10px", borderRadius: "8px", border: "1px solid var(--border)" }}>

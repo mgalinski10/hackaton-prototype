@@ -37,6 +37,11 @@ export interface Shelter {
   documentPath?: string;
   imageUrl?: string;
   isPrimaryShelter: boolean;
+  adoptionRate: number;       // % zwierząt które trafiają do adopcji
+  mortalityRate: number;      // % śmiertelności
+  avgStayDays: number;        // średnia liczba dni do adopcji
+  animalsAdoptedThisYear: number;
+  animalsIncomingThisYear: number;
   reviews: Review[];
   description?: string;
   phone?: string;
@@ -44,36 +49,6 @@ export interface Shelter {
   website?: string;
   capacity?: number;
   currentAnimals?: number;
-}
-
-export type AnimalSpecies = "dog" | "cat" | "other";
-export type AnimalStatus = "available" | "reserved" | "adopted";
-export type AnimalGender = "male" | "female";
-
-export interface Animal {
-  id: string;
-  shelterId: string;
-  name: string;
-  species: AnimalSpecies;
-  breed: string;
-  age: number; // months
-  gender: AnimalGender;
-  imageUrl: string;
-  description: string;
-  status: AnimalStatus;
-  vaccinated: boolean;
-  sterilized: boolean;
-  arrivedAt: string;
-}
-
-export interface VolunteerShift {
-  id: string;
-  date: string;
-  startHour: number;
-  endHour: number;
-  shelterName: string;
-  task: string;
-  status: "upcoming" | "completed";
 }
 
 export interface VolunteerApplication {

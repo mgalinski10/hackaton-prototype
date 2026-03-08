@@ -3,7 +3,19 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { mockVolunteerShifts, mockAnimals, mockShelters } from "@/data/mockData";
+import { mockShelters } from "@/data/mockData";
+
+// Local volunteer shift data (no longer in mockData)
+const mockVolunteerShifts = [
+  { id: "vs1", date: "2026-03-10", startHour: 9, endHour: 13, shelterName: "Schronisko Miejskie Gdańsk – ul. Przyrodnicza", task: "Spacery z psami i socjalizacja", status: "upcoming" as const },
+  { id: "vs2", date: "2026-03-14", startHour: 14, endHour: 18, shelterName: "Schronisko Miejskie Gdynia – Małokacka", task: "Karmienie i czyszczenie boksów", status: "upcoming" as const },
+  { id: "vs3", date: "2026-03-17", startHour: 10, endHour: 14, shelterName: "Schronisko Miejskie Gdańsk – ul. Przyrodnicza", task: "Asystowanie przy adopcjach", status: "upcoming" as const },
+  { id: "vs4", date: "2026-02-24", startHour: 9, endHour: 13, shelterName: "TOZ – Gdańsk Oliwa", task: "Spacery i rehabilitacja psów", status: "completed" as const },
+  { id: "vs5", date: "2026-02-17", startHour: 14, endHour: 17, shelterName: "Schronisko Miejskie Gdańsk – ul. Przyrodnicza", task: "Fotografowanie zwierząt do adopcji", status: "completed" as const },
+  { id: "vs6", date: "2026-02-10", startHour: 9, endHour: 12, shelterName: "Schronisko Miejskie Gdynia – Małokacka", task: "Karmienie i monitoring kotów", status: "completed" as const },
+  { id: "vs7", date: "2026-01-27", startHour: 10, endHour: 14, shelterName: "Schronisko Miejskie Gdańsk – ul. Przyrodnicza", task: "Spacery i socjalizacja", status: "completed" as const },
+  { id: "vs8", date: "2026-01-13", startHour: 14, endHour: 18, shelterName: "Fundacja Cztery Łapy – Sopot", task: "Asystowanie przy zabiegach weterynaryjnych", status: "completed" as const },
+];
 import {
   PawPrint, ArrowLeft, Clock, Star, Heart, Calendar,
   TrendingUp, Award, CheckCircle2, MapPin, ChevronRight,
@@ -22,7 +34,7 @@ export default function DashboardPage() {
   const upcoming = mockVolunteerShifts.filter((s) => s.status === "upcoming");
   const completed = mockVolunteerShifts.filter((s) => s.status === "completed");
   const totalHours = completed.reduce((acc, s) => acc + (s.endHour - s.startHour), 0);
-  const totalAnimalsHelped = mockAnimals.filter((a) => a.status === "adopted").length + 8;
+  const totalAnimalsHelped = mockShelters.reduce((acc, s) => acc + s.animalsAdoptedThisYear, 0);
   const uniqueShelters = new Set(mockVolunteerShifts.map((s) => s.shelterName)).size;
 
   const isVolunteer = user.role === "VOLUNTEER" || user.role === "ADMIN";
