@@ -191,10 +191,10 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick links */}
-        <div style={{ marginTop: "24px", display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
+        <div style={{ marginTop: "24px", display: "grid", gridTemplateColumns: isVolunteer ? "1fr 1fr" : "1fr 1fr 1fr", gap: "12px" }}>
           {[
             { href: "/", label: "Mapa schronisk", desc: "Przeglądaj i oceniaj schroniska", icon: <MapPin size={20} style={{ color: "#06B6D4" }} />, color: "#06B6D4" },
-            { href: "/volunteer-apply", label: "Aplikacja wolontariusza", desc: "Złóż lub uzupełnij wniosek", icon: <Heart size={20} style={{ color: "var(--yellow)" }} />, color: "var(--yellow)" },
+            ...(!isVolunteer ? [{ href: "/volunteer-apply", label: "Aplikacja wolontariusza", desc: "Złóż lub uzupełnij wniosek", icon: <Heart size={20} style={{ color: "var(--yellow)" }} />, color: "var(--yellow)" }] : []),
             { href: "/", label: "Zwierzęta do adopcji", desc: "Przeglądaj zwierzęta na mapie", icon: <PawPrint size={20} style={{ color: "#22c55e" }} />, color: "#22c55e" },
           ].map((link) => (
             <Link key={link.href + link.label} href={link.href} style={{ textDecoration: "none" }}>
