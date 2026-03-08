@@ -1,0 +1,1 @@
+self.__REACT_LOADABLE_MANIFEST="{\"app/page.tsx -> @/components/Map/ShelterMap\":{\"id\":\"app/page.tsx -> @/components/Map/ShelterMap\",\"files\":[\"static/css/_app-pages-browser_src_components_Map_ShelterMap_tsx.css\",\"static/chunks/_app-pages-browser_src_components_Map_ShelterMap_tsx.js\"]}}"
