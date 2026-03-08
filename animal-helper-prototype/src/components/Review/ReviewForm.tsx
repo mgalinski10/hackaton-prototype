@@ -10,9 +10,10 @@ interface Props {
   shelter: Shelter;
   onClose: () => void;
   onSubmitted: (review: Review) => void;
+  taskId?: string;
 }
 
-export default function ReviewForm({ shelter, onClose, onSubmitted }: Props) {
+export default function ReviewForm({ shelter, onClose, onSubmitted, taskId }: Props) {
   const { user } = useAuth();
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
@@ -46,6 +47,9 @@ export default function ReviewForm({ shelter, onClose, onSubmitted }: Props) {
 
     const fd = new FormData();
     fd.append("shelterId", shelter.id);
+    fd.append("shelterName", shelter.name);
+    fd.append("shelterLat", String(shelter.lat));
+    fd.append("shelterLon", String(shelter.lon));
     fd.append("name", user.name);
     fd.append("surname", user.surname);
     fd.append("rating", String(rating));
@@ -56,7 +60,18 @@ export default function ReviewForm({ shelter, onClose, onSubmitted }: Props) {
     try {
       const res = await fetch("/api/reviews", { method: "POST", body: fd });
       if (!res.ok) throw new Error("Błąd zapisu");
-      const saved: Review = await res.json();
+      const data = await res.json();
+      const saved: Review = data.review ?? data;
+
+      // If this review was part of an inspection task, mark it completed
+      if (taskId) {
+        await fetch(`/api/tasks/${taskId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "COMPLETED", linkedReviewId: saved.id }),
+        });
+      }
+
       onSubmitted(saved);
     } catch {
       alert("Nie udało się zapisać opinii.");

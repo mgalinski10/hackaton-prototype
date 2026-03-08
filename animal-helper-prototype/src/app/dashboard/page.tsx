@@ -1,9 +1,11 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { mockShelters } from "@/data/mockData";
+import { InspectionTask } from "@/types";
+import ReviewForm from "@/components/Review/ReviewForm";
 
 // Local volunteer shift data (no longer in mockData)
 const mockVolunteerShifts = [
@@ -19,15 +21,48 @@ const mockVolunteerShifts = [
 import {
   PawPrint, ArrowLeft, Clock, Star, Heart, Calendar,
   TrendingUp, Award, CheckCircle2, MapPin, ChevronRight,
+  AlertTriangle, TrendingDown, ClipboardCheck,
 } from "lucide-react";
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const router = useRouter();
+  const [inspectionTasks, setInspectionTasks] = useState<InspectionTask[]>([]);
+  const [reviewTask, setReviewTask] = useState<InspectionTask | null>(null);
 
   useEffect(() => {
     if (!user) router.push("/login");
   }, [user, router]);
+
+  useEffect(() => {
+    if (!user) return;
+    fetch(`/api/tasks`)
+      .then((r) => r.json())
+      .then((data: InspectionTask[]) => setInspectionTasks(data))
+      .catch(() => {});
+  }, [user]);
+
+  const handleAcceptTask = async (taskId: string) => {
+    const res = await fetch(`/api/tasks/${taskId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "ACCEPTED" }),
+    });
+    if (res.ok) {
+      const updated: InspectionTask = await res.json();
+      setInspectionTasks((prev) => prev.map((t) => (t.id === taskId ? updated : t)));
+    }
+  };
+
+  const handleReviewSubmitted = () => {
+    setReviewTask(null);
+    if (user) {
+      fetch(`/api/tasks`)
+        .then((r) => r.json())
+        .then((data: InspectionTask[]) => setInspectionTasks(data))
+        .catch(() => {});
+    }
+  };
 
   if (!user) return null;
 
@@ -78,6 +113,70 @@ export default function DashboardPage() {
               : "Zaaplikuj na wolontariusza, aby odblokować pełne możliwości."}
           </p>
         </div>
+
+        {/* Inspection tasks */}
+        {isVolunteer && inspectionTasks.filter((t) => t.status !== "COMPLETED").length > 0 && (
+          <div style={{ marginBottom: "28px" }}>
+            <h2 style={{ fontWeight: 700, fontSize: "1rem", color: "var(--text)", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <AlertTriangle size={18} style={{ color: "#ef4444" }} />
+              Zlecone kontrole
+              <span style={{ background: "rgba(239,68,68,0.12)", color: "#ef4444", fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: "20px" }}>
+                {inspectionTasks.filter((t) => t.status !== "COMPLETED").length} aktywne
+              </span>
+            </h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {inspectionTasks.filter((t) => t.status !== "COMPLETED").map((task) => {
+                const isDrop = task.anomalyType === "SUDDEN_DROP";
+                const accentColor = isDrop ? "#ef4444" : "#f59e0b";
+                const accentBg = isDrop ? "rgba(239,68,68,0.08)" : "rgba(245,158,11,0.08)";
+                const accentBorder = isDrop ? "rgba(239,68,68,0.3)" : "rgba(245,158,11,0.3)";
+                const isPending = task.status === "PENDING_ACCEPT";
+
+                return (
+                  <div
+                    key={task.id}
+                    style={{ background: "var(--surface)", border: `1px solid ${accentBorder}`, borderRadius: "16px", padding: "16px 18px" }}
+                  >
+                    <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
+                      <div style={{ width: "38px", height: "38px", borderRadius: "10px", background: accentBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                        {isDrop ? <TrendingDown size={18} style={{ color: accentColor }} /> : <TrendingUp size={18} style={{ color: accentColor }} />}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" }}>
+                          <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--text)" }}>{task.shelterName}</span>
+                          <span style={{ background: accentBg, color: accentColor, fontSize: "0.62rem", fontWeight: 700, padding: "2px 7px", borderRadius: "20px" }}>
+                            {isDrop ? "NAGŁY SPADEK" : "NAGŁY WZROST"}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: "0.78rem", color: "var(--text-muted)", marginBottom: "10px" }}>
+                          Algorytm wykrył podejrzaną zmianę ocen: ★ {task.avgBefore} → <strong style={{ color: accentColor }}>★ {task.avgAfter}</strong>
+                          {" · "}Wykryto {new Date(task.detectedAt).toLocaleDateString("pl-PL", { day: "numeric", month: "short" })}
+                        </p>
+                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                          {isPending ? (
+                            <button
+                              onClick={() => handleAcceptTask(task.id)}
+                              style={{ display: "flex", alignItems: "center", gap: "6px", background: "rgba(6,182,212,0.12)", border: "1px solid rgba(6,182,212,0.35)", borderRadius: "10px", padding: "7px 14px", color: "#06B6D4", fontWeight: 700, fontSize: "0.8rem", cursor: "pointer" }}
+                            >
+                              <CheckCircle2 size={14} /> Przyjmij zlecenie
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setReviewTask(task)}
+                              style={{ display: "flex", alignItems: "center", gap: "6px", background: "rgba(250,204,21,0.12)", border: "1px solid rgba(250,204,21,0.35)", borderRadius: "10px", padding: "7px 14px", color: "var(--yellow)", fontWeight: 700, fontSize: "0.8rem", cursor: "pointer" }}
+                            >
+                              <ClipboardCheck size={14} /> Przeprowadź kontrolę
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {!isVolunteer && (
           <div style={{ background: "rgba(6,182,212,0.08)", border: "1px solid rgba(6,182,212,0.25)", borderRadius: "16px", padding: "20px 24px", marginBottom: "32px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "20px" }}>
@@ -190,6 +289,29 @@ export default function DashboardPage() {
           )}
         </div>
 
+        {/* Completed inspections history */}
+        {isVolunteer && inspectionTasks.filter((t) => t.status === "COMPLETED").length > 0 && (
+          <div style={{ marginTop: "20px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "20px", padding: "20px" }}>
+            <h2 style={{ fontWeight: 700, fontSize: "1rem", color: "var(--text)", marginBottom: "14px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <ClipboardCheck size={18} style={{ color: "#22c55e" }} /> Historia kontroli
+            </h2>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {inspectionTasks.filter((t) => t.status === "COMPLETED").map((task) => (
+                <div key={task.id} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "10px 12px", background: "var(--surface-2)", borderRadius: "10px" }}>
+                  <CheckCircle2 size={14} style={{ color: "#22c55e", flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: "0.78rem", fontWeight: 600, color: "var(--text)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{task.shelterName}</p>
+                    <p style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
+                      Kontrola {task.anomalyType === "SUDDEN_DROP" ? "spadku" : "wzrostu"} ocen · {task.completedAt ? new Date(task.completedAt).toLocaleDateString("pl-PL") : ""}
+                    </p>
+                  </div>
+                  <span style={{ fontSize: "0.65rem", fontWeight: 700, background: "rgba(34,197,94,0.1)", color: "#22c55e", padding: "2px 8px", borderRadius: "20px", flexShrink: 0 }}>UKOŃCZONA</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Quick links */}
         <div style={{ marginTop: "24px", display: "grid", gridTemplateColumns: isVolunteer ? "1fr 1fr" : "1fr 1fr 1fr", gap: "12px" }}>
           {[
@@ -211,6 +333,20 @@ export default function DashboardPage() {
           ))}
         </div>
       </div>
+
+      {/* Inspection review modal */}
+      {reviewTask && (() => {
+        const shelter = mockShelters.find((s) => s.id === reviewTask.shelterId);
+        if (!shelter) return null;
+        return (
+          <ReviewForm
+            shelter={shelter}
+            taskId={reviewTask.id}
+            onClose={() => setReviewTask(null)}
+            onSubmitted={handleReviewSubmitted}
+          />
+        );
+      })()}
     </div>
   );
 }

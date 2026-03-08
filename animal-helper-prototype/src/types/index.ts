@@ -77,3 +77,34 @@ export interface User {
   email: string;
   role: UserRole;
 }
+
+export type AnomalyType = "SUDDEN_DROP" | "SUDDEN_SPIKE";
+export type TaskStatus = "PENDING_ACCEPT" | "ACCEPTED" | "COMPLETED";
+
+export interface InspectionTask {
+  id: string;
+  shelterId: string;
+  shelterName: string;
+  shelterLat: number;
+  shelterLon: number;
+  volunteerId: string;
+  volunteerName: string;
+  volunteerEmail: string;
+  status: TaskStatus;
+  anomalyType: AnomalyType;
+  avgBefore: number;
+  avgAfter: number;
+  detectedAt: string;
+  acceptedAt?: string;
+  completedAt?: string;
+  linkedReviewId?: string;
+}
+
+export interface MockVolunteer {
+  id: string;
+  name: string;
+  surname: string;
+  email: string;
+  lat: number;
+  lon: number;
+}

@@ -1,0 +1,26 @@
+[
+  {
+    "id": "v1",
+    "name": "Anna",
+    "surname": "Wolontariusz",
+    "email": "anna@example.com",
+    "lat": 54.3850,
+    "lon": 18.6100
+  },
+  {
+    "id": "v2",
+    "name": "Piotr",
+    "surname": "Zając",
+    "email": "piotr.zajac@volunteer.pl",
+    "lat": 54.4897,
+    "lon": 18.4945
+  },
+  {
+    "id": "v3",
+    "name": "Tomasz",
+    "surname": "Kamiński",
+    "email": "tomasz.kaminski@volunteer.pl",
+    "lat": 54.5600,
+    "lon": 18.4200
+  }
+]

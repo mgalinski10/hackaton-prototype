@@ -8,7 +8,9 @@ import {
   PawPrint, ArrowLeft, ShieldCheck, Users, Building2,
   CheckCircle2, AlertCircle, TrendingUp, Heart,
   BarChart3, FileText, Bell, X, ExternalLink, MessageSquare,
+  TrendingDown, AlertTriangle, ClipboardList,
 } from "lucide-react";
+import { InspectionTask } from "@/types";
 
 interface Application {
   id: string;
@@ -194,7 +196,8 @@ export default function AdminPage() {
   const { user } = useAuth();
   const router = useRouter();
   const [applications, setApplications] = useState<Application[]>([]);
-  const [activeSection, setActiveSection] = useState<"overview" | "applications" | "shelters">("overview");
+  const [tasks, setTasks] = useState<InspectionTask[]>([]);
+  const [activeSection, setActiveSection] = useState<"overview" | "applications" | "shelters" | "alerts">("overview");
   const [toast, setToast] = useState("");
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
 
@@ -206,6 +209,10 @@ export default function AdminPage() {
     fetch("/api/applications")
       .then((r) => r.json())
       .then((data: Application[]) => setApplications(data))
+      .catch(() => {});
+    fetch("/api/tasks")
+      .then((r) => r.json())
+      .then((data: InspectionTask[]) => setTasks(data))
       .catch(() => {});
   }, []);
 
@@ -245,10 +252,13 @@ export default function AdminPage() {
     showToast("Aplikacja odrzucona.");
   };
 
+  const activeAlerts = tasks.filter((t) => t.status !== "COMPLETED").length;
+
   const navItems = [
     { key: "overview",      label: "Przegląd",    icon: <BarChart3 size={16} /> },
     { key: "applications",  label: `Aplikacje${pendingApps > 0 ? ` (${pendingApps})` : ""}`, icon: <FileText size={16} /> },
     { key: "shelters",      label: "Schroniska",  icon: <Building2 size={16} /> },
+    { key: "alerts",        label: `Alerty${activeAlerts > 0 ? ` (${activeAlerts})` : ""}`, icon: <AlertTriangle size={16} /> },
   ] as const;
 
   return (
@@ -308,12 +318,13 @@ export default function AdminPage() {
           {activeSection === "overview" && (
             <div>
               <h1 style={{ fontWeight: 800, fontSize: "1.5rem", color: "var(--text)", marginBottom: "24px" }}>Przegląd systemu</h1>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px", marginBottom: "28px" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "14px", marginBottom: "28px" }}>
                 {[
                   { icon: <Building2 size={20} style={{ color: "#06B6D4" }} />, value: mockShelters.length, label: "Schronisk", sub: `${verifiedCount} zweryfikowanych`, color: "#06B6D4" },
                   { icon: <PawPrint size={20} style={{ color: "var(--yellow)" }} />, value: totalAnimals, label: "Zwierząt łącznie", sub: `z ${totalCapacity} miejsc (${Math.round(totalAnimals / totalCapacity * 100)}%)`, color: "var(--yellow)" },
                   { icon: <Heart size={20} style={{ color: "#22c55e" }} />, value: totalAdoptedThisYear, label: "Adoptowanych w roku", sub: "skuteczne adopcje", color: "#22c55e" },
                   { icon: <Users size={20} style={{ color: "#f59e0b" }} />, value: pendingApps, label: "Aplikacji", sub: "czeka na weryfikację", color: "#f59e0b" },
+                  { icon: <AlertTriangle size={20} style={{ color: "#ef4444" }} />, value: activeAlerts, label: "Aktywnych alertów", sub: "podejrzana aktywność", color: "#ef4444" },
                 ].map((stat, i) => (
                   <div key={i} style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "16px", padding: "18px" }}>
                     <div style={{ marginBottom: "10px" }}>{stat.icon}</div>
@@ -388,6 +399,75 @@ export default function AdminPage() {
                           {st.label}
                         </span>
                         <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Szczegóły →</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ALERTS */}
+          {activeSection === "alerts" && (
+            <div>
+              <h1 style={{ fontWeight: 800, fontSize: "1.5rem", color: "var(--text)", marginBottom: "8px" }}>Alerty — podejrzana aktywność</h1>
+              <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", marginBottom: "24px" }}>
+                Algorytm wykrył podejrzane zmiany ocen. Zlecenia kontrolne przypisane są automatycznie do najbliższego wolontariusza.
+              </p>
+
+              {tasks.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "60px 20px", color: "var(--text-muted)", fontSize: "0.9rem" }}>
+                  <AlertTriangle size={40} style={{ margin: "0 auto 16px", opacity: 0.3 }} />
+                  Brak wykrytych anomalii.
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                  {tasks.map((task) => {
+                    const isDrop = task.anomalyType === "SUDDEN_DROP";
+                    const accentColor = isDrop ? "#ef4444" : "#f59e0b";
+                    const accentBg = isDrop ? "rgba(239,68,68,0.08)" : "rgba(245,158,11,0.08)";
+                    const accentBorder = isDrop ? "rgba(239,68,68,0.25)" : "rgba(245,158,11,0.25)";
+                    const statusLabel = task.status === "PENDING_ACCEPT" ? "Oczekuje na przyjęcie" : task.status === "ACCEPTED" ? "Przyjęte" : "Ukończone";
+                    const statusColor = task.status === "PENDING_ACCEPT" ? "#f59e0b" : task.status === "ACCEPTED" ? "#06B6D4" : "#22c55e";
+                    const statusBg = task.status === "PENDING_ACCEPT" ? "rgba(245,158,11,0.1)" : task.status === "ACCEPTED" ? "rgba(6,182,212,0.1)" : "rgba(34,197,94,0.1)";
+
+                    return (
+                      <div
+                        key={task.id}
+                        style={{
+                          background: "var(--surface)",
+                          border: `1px solid ${task.status === "COMPLETED" ? "var(--border)" : accentBorder}`,
+                          borderRadius: "16px",
+                          padding: "18px 20px",
+                          opacity: task.status === "COMPLETED" ? 0.65 : 1,
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "flex-start", gap: "14px" }}>
+                          <div style={{ width: "40px", height: "40px", borderRadius: "12px", background: accentBg, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            {isDrop ? <TrendingDown size={20} style={{ color: accentColor }} /> : <TrendingUp size={20} style={{ color: accentColor }} />}
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px", flexWrap: "wrap" }}>
+                              <span style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--text)" }}>{task.shelterName}</span>
+                              <span style={{ background: accentBg, color: accentColor, fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: "20px", border: `1px solid ${accentBorder}` }}>
+                                {isDrop ? "NAGŁY SPADEK" : "NAGŁY WZROST"}
+                              </span>
+                              <span style={{ background: statusBg, color: statusColor, fontSize: "0.65rem", fontWeight: 700, padding: "2px 8px", borderRadius: "20px" }}>
+                                {statusLabel}
+                              </span>
+                            </div>
+                            <p style={{ fontSize: "0.8rem", color: "var(--text-muted)", marginBottom: "6px" }}>
+                              Średnia przed: <strong style={{ color: "var(--text)" }}>★ {task.avgBefore}</strong>
+                              {" → "}
+                              Nowa ocena: <strong style={{ color: accentColor }}>★ {task.avgAfter}</strong>
+                            </p>
+                            <div style={{ display: "flex", gap: "16px", fontSize: "0.75rem", color: "var(--text-muted)", flexWrap: "wrap" }}>
+                              <span>Wolontariusz: <strong style={{ color: "var(--text)" }}>{task.volunteerName}</strong></span>
+                              <span>Wykryto: {new Date(task.detectedAt).toLocaleDateString("pl-PL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
+                              {task.completedAt && <span>Ukończono: {new Date(task.completedAt).toLocaleDateString("pl-PL", { day: "numeric", month: "short" })}</span>}
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     );
                   })}

@@ -1,0 +1,53 @@
+[
+  {
+    "id": "task-1772962500545",
+    "shelterId": "1",
+    "shelterName": "Schronisko Miejskie Gdańsk – ul. Przyrodnicza",
+    "shelterLat": 54.382,
+    "shelterLon": 18.6266,
+    "volunteerId": "v1",
+    "volunteerName": "Anna Wolontariusz",
+    "volunteerEmail": "anna@example.com",
+    "status": "PENDING_ACCEPT",
+    "anomalyType": "SUDDEN_DROP",
+    "avgBefore": 3,
+    "avgAfter": 1,
+    "detectedAt": "2026-03-08T09:35:00.545Z"
+  },
+  {
+    "id": "task-1772962477551",
+    "shelterId": "1",
+    "shelterName": "Schronisko Miejskie Gdańsk – ul. Przyrodnicza",
+    "shelterLat": 54.382,
+    "shelterLon": 18.6266,
+    "volunteerId": "v1",
+    "volunteerName": "Anna Wolontariusz",
+    "volunteerEmail": "anna@example.com",
+    "status": "COMPLETED",
+    "anomalyType": "SUDDEN_SPIKE",
+    "avgBefore": 3,
+    "avgAfter": 5,
+    "detectedAt": "2026-03-08T09:34:37.551Z",
+    "acceptedAt": "2026-03-08T09:34:44.828Z",
+    "completedAt": "2026-03-08T09:35:00.562Z",
+    "linkedReviewId": "r-1772962500545"
+  },
+  {
+    "id": "task-1772962400359",
+    "shelterId": "1",
+    "shelterName": "Schronisko Miejskie Gdańsk – ul. Przyrodnicza",
+    "shelterLat": 54.382,
+    "shelterLon": 18.6266,
+    "volunteerId": "v1",
+    "volunteerName": "Anna Wolontariusz",
+    "volunteerEmail": "anna@example.com",
+    "status": "COMPLETED",
+    "anomalyType": "SUDDEN_DROP",
+    "avgBefore": 4,
+    "avgAfter": 1,
+    "detectedAt": "2026-03-08T09:33:20.359Z",
+    "acceptedAt": "2026-03-08T09:34:09.236Z",
+    "completedAt": "2026-03-08T09:34:37.612Z",
+    "linkedReviewId": "r-1772962477551"
+  }
+]
