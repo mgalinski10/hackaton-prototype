@@ -7,7 +7,7 @@ import ReviewForm from "@/components/Review/ReviewForm";
 import {
   X, MapPin, Phone, Mail, CheckCircle2, AlertCircle,
   Building2, MessageSquarePlus, ChevronDown, ChevronUp,
-  PawPrint, Users, ExternalLink
+  PawPrint, Users, Download, Crown,
 } from "lucide-react";
 
 interface Props {
@@ -20,6 +20,7 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [toast, setToast] = useState("");
   const [expandedReviews, setExpandedReviews] = useState(false);
+  const [imgError, setImgError] = useState(false);
 
   const avgRating =
     shelter.reviews.length > 0
@@ -46,14 +47,17 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
       <div
         style={{
           position: "absolute", right: 0, top: 0, bottom: 0,
-          width: "100%", maxWidth: "420px",
+          width: "100%", maxWidth: "440px",
           background: "var(--surface)",
           borderLeft: "1px solid var(--border)",
+          borderTopLeftRadius: "16px",
+          borderBottomLeftRadius: "16px",
           zIndex: 500,
           overflowY: "auto",
           display: "flex",
           flexDirection: "column",
           animation: "slideInRight 0.25s ease",
+          boxShadow: "-8px 0 40px rgba(0,0,0,0.5)",
         }}
       >
         <style>{`
@@ -61,52 +65,90 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
           }
+          .shelter-tooltip .leaflet-tooltip { background: transparent !important; border: none !important; box-shadow: none !important; padding: 0 !important; }
+          .review-card:hover { border-color: rgba(250,204,21,0.3) !important; }
         `}</style>
 
+        {/* Shelter image */}
+        {shelter.imageUrl && !imgError ? (
+          <div style={{ position: "relative", width: "100%", height: "180px", flexShrink: 0, overflow: "hidden" }}>
+            <img
+              src={shelter.imageUrl}
+              alt={shelter.name}
+              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              onError={() => setImgError(true)}
+            />
+            <div style={{
+              position: "absolute", inset: 0,
+              background: "linear-gradient(to bottom, rgba(0,0,0,0.1) 0%, rgba(17,17,17,0.95) 100%)",
+            }} />
+            <button
+              onClick={onClose}
+              style={{
+                position: "absolute", top: "12px", right: "12px",
+                background: "rgba(0,0,0,0.6)", backdropFilter: "blur(8px)",
+                border: "1px solid rgba(255,255,255,0.15)", borderRadius: "50%",
+                width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center",
+                color: "#fff", cursor: "pointer",
+              }}
+            >
+              <X size={16} />
+            </button>
+          </div>
+        ) : null}
+
         {/* Header */}
-        <div style={{ padding: "20px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <div style={{ flex: 1, paddingRight: "12px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+        <div style={{ padding: "20px", borderBottom: "1px solid var(--border)", flexShrink: 0, marginTop: shelter.imageUrl && !imgError ? "-20px" : 0, position: "relative", zIndex: 1 }}>
+          {(!shelter.imageUrl || imgError) && (
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "8px" }}>
+              <button
+                onClick={onClose}
+                style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "10px", padding: "6px", color: "var(--text-muted)", cursor: "pointer" }}
+              >
+                <X size={16} />
+              </button>
+            </div>
+          )}
+
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+            <div style={{ flex: 1 }}>
+              {/* Badges */}
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px", flexWrap: "wrap" }}>
+                {shelter.isPrimaryShelter && (
+                  <span style={{
+                    display: "flex", alignItems: "center", gap: "4px",
+                    background: "rgba(6,182,212,0.15)", color: "#06B6D4",
+                    fontSize: "0.7rem", fontWeight: 700, padding: "3px 10px", borderRadius: "20px",
+                    border: "1px solid rgba(6,182,212,0.3)",
+                  }}>
+                    <Crown size={10} /> SCHRONISKO GMINNE
+                  </span>
+                )}
                 {isVerified ? (
-                  <span
-                    style={{
-                      display: "flex", alignItems: "center", gap: "4px",
-                      background: "rgba(250,204,21,0.15)", color: "var(--yellow)",
-                      fontSize: "0.7rem", fontWeight: 700, padding: "2px 8px", borderRadius: "4px",
-                      border: "1px solid rgba(250,204,21,0.3)",
-                    }}
-                  >
+                  <span style={{
+                    display: "flex", alignItems: "center", gap: "4px",
+                    background: "rgba(250,204,21,0.12)", color: "var(--yellow)",
+                    fontSize: "0.7rem", fontWeight: 700, padding: "3px 10px", borderRadius: "20px",
+                    border: "1px solid rgba(250,204,21,0.25)",
+                  }}>
                     <CheckCircle2 size={10} /> ZWERYFIKOWANE
                   </span>
                 ) : (
-                  <span
-                    style={{
-                      display: "flex", alignItems: "center", gap: "4px",
-                      background: "rgba(255,255,255,0.05)", color: "var(--text-muted)",
-                      fontSize: "0.7rem", fontWeight: 700, padding: "2px 8px", borderRadius: "4px",
-                      border: "1px solid var(--border)",
-                    }}
-                  >
+                  <span style={{
+                    display: "flex", alignItems: "center", gap: "4px",
+                    background: "rgba(255,255,255,0.04)", color: "var(--text-muted)",
+                    fontSize: "0.7rem", fontWeight: 700, padding: "3px 10px", borderRadius: "20px",
+                    border: "1px solid var(--border)",
+                  }}>
                     <AlertCircle size={10} /> NIEZWERYFIKOWANE
                   </span>
                 )}
-                {shelter.isPrimaryShelter && (
-                  <span style={{ background: "rgba(34,197,94,0.15)", color: "#22c55e", fontSize: "0.7rem", fontWeight: 700, padding: "2px 8px", borderRadius: "4px" }}>
-                    GMINNE
-                  </span>
-                )}
               </div>
+
               <h2 style={{ fontWeight: 700, fontSize: "1.05rem", lineHeight: "1.3", color: "var(--text)" }}>
                 {shelter.name}
               </h2>
             </div>
-            <button
-              onClick={onClose}
-              style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "8px", padding: "6px", color: "var(--text-muted)", cursor: "pointer", flexShrink: 0 }}
-            >
-              <X size={16} />
-            </button>
           </div>
 
           {/* Rating */}
@@ -132,24 +174,24 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
 
         {/* Stats */}
         {(shelter.capacity || shelter.currentAnimals) && (
-          <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", gap: "16px" }}>
-            <div style={{ flex: 1, background: "var(--surface-2)", borderRadius: "10px", padding: "12px" }}>
+          <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", gap: "12px" }}>
+            <div style={{ flex: 1, background: "var(--surface-2)", borderRadius: "16px", padding: "14px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
                 <PawPrint size={14} style={{ color: "var(--yellow)" }} />
                 <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Zwierząt</span>
               </div>
-              <p style={{ fontWeight: 700, fontSize: "1.2rem", color: "var(--text)" }}>{shelter.currentAnimals}</p>
+              <p style={{ fontWeight: 700, fontSize: "1.3rem", color: "var(--text)" }}>{shelter.currentAnimals}</p>
               {shelter.capacity && <p style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>z {shelter.capacity} miejsc</p>}
             </div>
             {occupancy !== null && (
-              <div style={{ flex: 1, background: "var(--surface-2)", borderRadius: "10px", padding: "12px" }}>
+              <div style={{ flex: 1, background: "var(--surface-2)", borderRadius: "16px", padding: "14px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
                   <Users size={14} style={{ color: occupancy > 80 ? "var(--red)" : "var(--yellow)" }} />
                   <span style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Zapełnienie</span>
                 </div>
-                <p style={{ fontWeight: 700, fontSize: "1.2rem", color: occupancy > 80 ? "var(--red)" : "var(--text)" }}>{occupancy}%</p>
-                <div style={{ marginTop: "6px", height: "4px", background: "var(--border)", borderRadius: "2px", overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: `${occupancy}%`, background: occupancy > 80 ? "var(--red)" : "var(--yellow)", borderRadius: "2px" }} />
+                <p style={{ fontWeight: 700, fontSize: "1.3rem", color: occupancy > 80 ? "var(--red)" : "var(--text)" }}>{occupancy}%</p>
+                <div style={{ marginTop: "8px", height: "5px", background: "var(--border)", borderRadius: "99px", overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${occupancy}%`, background: occupancy > 80 ? "var(--red)" : "var(--yellow)", borderRadius: "99px", transition: "width 0.6s ease" }} />
                 </div>
               </div>
             )}
@@ -159,7 +201,7 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
         {/* Info */}
         <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
           {shelter.description && (
-            <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", lineHeight: "1.6", marginBottom: "16px" }}>
+            <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", lineHeight: "1.65", marginBottom: "16px" }}>
               {shelter.description}
             </p>
           )}
@@ -183,15 +225,35 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
                 <a href={`mailto:${shelter.email}`} style={{ fontSize: "0.875rem", color: "var(--text)", textDecoration: "none" }}>{shelter.email}</a>
               </div>
             )}
-            {shelter.documentPath && (
-              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <Building2 size={15} style={{ color: "var(--yellow)", flexShrink: 0 }} />
-                <a href="#" style={{ fontSize: "0.875rem", color: "var(--yellow)", textDecoration: "none", display: "flex", alignItems: "center", gap: "4px" }}>
-                  Umowa z gminą <ExternalLink size={12} />
-                </a>
-              </div>
-            )}
           </div>
+
+          {/* PDF Document button */}
+          {shelter.documentPath && (
+            <a
+              href={shelter.documentPath}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "flex", alignItems: "center", gap: "8px",
+                marginTop: "14px",
+                background: "rgba(250,204,21,0.08)",
+                border: "1px solid rgba(250,204,21,0.25)",
+                borderRadius: "12px",
+                padding: "10px 14px",
+                color: "var(--yellow)",
+                textDecoration: "none",
+                fontSize: "0.875rem",
+                fontWeight: 600,
+                transition: "background 0.2s",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(250,204,21,0.15)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(250,204,21,0.08)")}
+            >
+              <Building2 size={15} />
+              Umowa z gminą
+              <Download size={13} style={{ marginLeft: "auto" }} />
+            </a>
+          )}
         </div>
 
         {/* Add Review CTA */}
@@ -202,28 +264,31 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
               className="flex items-center justify-center gap-2 w-full"
               style={{
                 background: "var(--yellow)", color: "#000", border: "none",
-                borderRadius: "10px", padding: "12px 16px",
+                borderRadius: "14px", padding: "13px 16px",
                 fontWeight: 700, fontSize: "0.95rem", cursor: "pointer",
+                transition: "opacity 0.2s",
               }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
             >
               <MessageSquarePlus size={18} />
               Dodaj opinię
               {user.role === "VOLUNTEER" && (
-                <span style={{ background: "#000", color: "var(--yellow)", fontSize: "0.65rem", padding: "2px 6px", borderRadius: "4px" }}>
+                <span style={{ background: "#000", color: "var(--yellow)", fontSize: "0.65rem", padding: "2px 8px", borderRadius: "20px" }}>
                   WOLONTARIUSZ
                 </span>
               )}
             </button>
           ) : (
             <div style={{ textAlign: "center" }}>
-              <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginBottom: "10px" }}>
+              <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginBottom: "12px" }}>
                 Zaloguj się, aby dodać opinię
               </p>
               <div style={{ display: "flex", gap: "8px" }}>
-                <a href="/login" style={{ flex: 1, padding: "10px", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "8px", textAlign: "center", color: "var(--text)", textDecoration: "none", fontSize: "0.875rem" }}>
+                <a href="/login" style={{ flex: 1, padding: "10px", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "12px", textAlign: "center", color: "var(--text)", textDecoration: "none", fontSize: "0.875rem" }}>
                   Zaloguj
                 </a>
-                <a href="/register" style={{ flex: 1, padding: "10px", background: "var(--yellow)", borderRadius: "8px", textAlign: "center", color: "#000", textDecoration: "none", fontSize: "0.875rem", fontWeight: 700 }}>
+                <a href="/register" style={{ flex: 1, padding: "10px", background: "var(--yellow)", borderRadius: "12px", textAlign: "center", color: "#000", textDecoration: "none", fontSize: "0.875rem", fontWeight: 700 }}>
                   Zarejestruj
                 </a>
               </div>
@@ -238,20 +303,22 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
           </h3>
 
           {shownReviews.length === 0 && (
-            <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", textAlign: "center", padding: "20px 0" }}>
+            <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", textAlign: "center", padding: "24px 0" }}>
               Brak opinii. Podziel się swoim doświadczeniem!
             </p>
           )}
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {shownReviews.map((review) => (
               <div
                 key={review.id}
+                className="review-card"
                 style={{
                   background: "var(--surface-2)",
-                  borderRadius: "10px",
+                  borderRadius: "14px",
                   padding: "14px",
                   border: review.isVolunteerReview ? "1px solid rgba(250,204,21,0.2)" : "1px solid var(--border)",
+                  transition: "border-color 0.2s",
                 }}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
@@ -259,7 +326,7 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
                     <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                       <span style={{ fontWeight: 600, fontSize: "0.875rem" }}>{review.name} {review.surname}</span>
                       {review.isVolunteerReview && (
-                        <span style={{ background: "rgba(250,204,21,0.15)", color: "var(--yellow)", fontSize: "0.6rem", fontWeight: 700, padding: "1px 5px", borderRadius: "3px" }}>
+                        <span style={{ background: "rgba(250,204,21,0.15)", color: "var(--yellow)", fontSize: "0.6rem", fontWeight: 700, padding: "2px 7px", borderRadius: "20px" }}>
                           WOLONTARIUSZ
                         </span>
                       )}
@@ -271,7 +338,7 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
                   <StarRating rating={review.rating} size={14} />
                 </div>
                 {review.comment && (
-                  <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: "1.5" }}>{review.comment}</p>
+                  <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: "1.55" }}>{review.comment}</p>
                 )}
               </div>
             ))}
@@ -283,7 +350,7 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
               className="flex items-center justify-center gap-1 w-full"
               style={{
                 marginTop: "12px", background: "none", border: "1px solid var(--border)",
-                borderRadius: "8px", padding: "8px", color: "var(--text-muted)",
+                borderRadius: "12px", padding: "10px", color: "var(--text-muted)",
                 fontSize: "0.85rem", cursor: "pointer",
               }}
             >

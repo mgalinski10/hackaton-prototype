@@ -1,9 +1,10 @@
 {
   "app/page.tsx -> @/components/Map/ShelterMap": {
-    "id": "app/page.tsx -> @/components/Map/ShelterMap",
+    "id": 8122,
     "files": [
-      "static/css/_app-pages-browser_src_components_Map_ShelterMap_tsx.css",
-      "static/chunks/_app-pages-browser_src_components_Map_ShelterMap_tsx.js"
+      "static/css/857aa62baa17c894.css",
+      "static/chunks/d0deef33.5551c27c44e59cec.js",
+      "static/chunks/122.1e8b3e9b5701e74d.js"
     ]
   }
 }

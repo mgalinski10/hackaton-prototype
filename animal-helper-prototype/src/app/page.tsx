@@ -35,6 +35,10 @@ export default function HomePage() {
         </p>
         <div style={{ display: "flex", gap: "16px", fontSize: "0.75rem", color: "var(--text-muted)" }}>
           <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+            <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#06B6D4", display: "inline-block" }} />
+            Schronisko gminne
+          </span>
+          <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
             <span style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--yellow)", display: "inline-block" }} />
             Zweryfikowane
           </span>

@@ -35,6 +35,7 @@ export interface Shelter {
   lat: number;
   verificationStatus: VerificationStatus;
   documentPath?: string;
+  imageUrl?: string;
   isPrimaryShelter: boolean;
   reviews: Review[];
   description?: string;
@@ -43,6 +44,18 @@ export interface Shelter {
   website?: string;
   capacity?: number;
   currentAnimals?: number;
+}
+
+export interface VolunteerApplication {
+  id: string;
+  userId: string;
+  name: string;
+  surname: string;
+  email: string;
+  motivation: string;
+  documentName: string;
+  status: "PENDING" | "APPROVED" | "REJECTED";
+  submittedAt: string;
 }
 
 export interface SurveyQuestion {
