@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { User } from "@/types";
 
 const STORAGE_KEY = "animal_helper_user";
@@ -38,7 +38,11 @@ const MOCK_USERS: (User & { password: string })[] = [
 ];
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(loadUser);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    setUser(loadUser());
+  }, []);
 
   const setAndPersist = (u: User | null) => {
     setUser(u);
