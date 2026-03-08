@@ -354,48 +354,50 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
         )}
 
         {/* Add review CTA */}
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
-          {user && user.role !== "ADMIN" ? (
-            <button
-              onClick={() => setShowReviewForm(true)}
-              style={{
-                background: "var(--yellow)", color: "#000", border: "none",
-                borderRadius: "14px", padding: "13px 16px",
-                fontWeight: 700, fontSize: "0.95rem", cursor: "pointer",
-                transition: "opacity 0.2s",
-                width: "100%",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "8px",
-              }}
-              onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
-              onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
-            >
-              <MessageSquarePlus size={18} />
-              Dodaj opinię
-              {user.role === "VOLUNTEER" && (
-                <span style={{ background: "#000", color: "var(--yellow)", fontSize: "0.65rem", padding: "2px 8px", borderRadius: "20px" }}>
-                  WOLONTARIUSZ ANIMAL HELPER
-                </span>
-              )}
-            </button>
-          ) : (
-            <div style={{ textAlign: "center" }}>
-              <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginBottom: "12px" }}>
-                Zaloguj się, aby dodać opinię
-              </p>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <a href="/login" style={{ flex: 1, padding: "10px", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "12px", textAlign: "center", color: "var(--text)", textDecoration: "none", fontSize: "0.875rem" }}>
-                  Zaloguj
-                </a>
-                <a href="/register" style={{ flex: 1, padding: "10px", background: "var(--yellow)", borderRadius: "12px", textAlign: "center", color: "#000", textDecoration: "none", fontSize: "0.875rem", fontWeight: 700 }}>
-                  Zarejestruj
-                </a>
+        {user?.role !== "ADMIN" && (
+          <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
+            {user ? (
+              <button
+                onClick={() => setShowReviewForm(true)}
+                style={{
+                  background: "var(--yellow)", color: "#000", border: "none",
+                  borderRadius: "14px", padding: "13px 16px",
+                  fontWeight: 700, fontSize: "0.95rem", cursor: "pointer",
+                  transition: "opacity 0.2s",
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "8px",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
+                onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+              >
+                <MessageSquarePlus size={18} />
+                Dodaj opinię
+                {user.role === "VOLUNTEER" && (
+                  <span style={{ background: "#000", color: "var(--yellow)", fontSize: "0.65rem", padding: "2px 8px", borderRadius: "20px" }}>
+                    WOLONTARIUSZ ANIMAL HELPER
+                  </span>
+                )}
+              </button>
+            ) : (
+              <div style={{ textAlign: "center" }}>
+                <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginBottom: "12px" }}>
+                  Zaloguj się, aby dodać opinię
+                </p>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <a href="/login" style={{ flex: 1, padding: "10px", background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "12px", textAlign: "center", color: "var(--text)", textDecoration: "none", fontSize: "0.875rem" }}>
+                    Zaloguj
+                  </a>
+                  <a href="/register" style={{ flex: 1, padding: "10px", background: "var(--yellow)", borderRadius: "12px", textAlign: "center", color: "#000", textDecoration: "none", fontSize: "0.875rem", fontWeight: 700 }}>
+                    Zarejestruj
+                  </a>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* Reviews section */}
         <div style={{ padding: "16px 20px", flex: 1 }}>
