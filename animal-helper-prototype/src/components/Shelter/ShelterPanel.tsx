@@ -4,6 +4,8 @@ import { Shelter } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import StarRating from "./StarRating";
 import ReviewForm from "@/components/Review/ReviewForm";
+import AnimalGallery from "@/components/Animals/AnimalGallery";
+import { mockAnimals } from "@/data/mockData";
 import {
   X, MapPin, Phone, Mail, CheckCircle2, AlertCircle,
   Building2, MessageSquarePlus, ChevronDown, ChevronUp,
@@ -21,6 +23,9 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
   const [toast, setToast] = useState("");
   const [expandedReviews, setExpandedReviews] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [activeTab, setActiveTab] = useState<"info" | "animals">("info");
+
+  const shelterAnimals = mockAnimals.filter((a) => a.shelterId === shelter.id);
 
   const avgRating =
     shelter.reviews.length > 0
@@ -172,8 +177,36 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
           )}
         </div>
 
+        {/* Tab bar */}
+        <div style={{ display: "flex", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
+          {([
+            { key: "info", label: "Informacje" },
+            { key: "animals", label: `Zwierzęta${shelterAnimals.length > 0 ? ` (${shelterAnimals.length})` : ""}` },
+          ] as const).map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              style={{
+                flex: 1, padding: "10px 0", fontSize: "0.85rem", fontWeight: 600,
+                background: "none", border: "none", cursor: "pointer",
+                color: activeTab === tab.key ? "var(--yellow)" : "var(--text-muted)",
+                borderBottom: activeTab === tab.key ? "2px solid var(--yellow)" : "2px solid transparent",
+                transition: "color 0.2s",
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === "animals" && (
+          <div style={{ padding: "16px 20px", flex: 1, overflowY: "auto" }}>
+            <AnimalGallery animals={shelterAnimals} />
+          </div>
+        )}
+
         {/* Stats */}
-        {(shelter.capacity || shelter.currentAnimals) && (
+        {activeTab === "info" && (shelter.capacity || shelter.currentAnimals) && (
           <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)", display: "flex", gap: "12px" }}>
             <div style={{ flex: 1, background: "var(--surface-2)", borderRadius: "16px", padding: "14px" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
@@ -199,7 +232,7 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
         )}
 
         {/* Info */}
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
+        {activeTab === "info" && <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
           {shelter.description && (
             <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", lineHeight: "1.65", marginBottom: "16px" }}>
               {shelter.description}
@@ -254,10 +287,10 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
               <Download size={13} style={{ marginLeft: "auto" }} />
             </a>
           )}
-        </div>
+        </div>}
 
         {/* Add Review CTA */}
-        <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
+        {activeTab === "info" && <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
           {user ? (
             <button
               onClick={() => setShowReviewForm(true)}
@@ -294,10 +327,10 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
               </div>
             </div>
           )}
-        </div>
+        </div>}
 
         {/* Reviews */}
-        <div style={{ padding: "16px 20px", flex: 1 }}>
+        {activeTab === "info" && <div style={{ padding: "16px 20px", flex: 1 }}>
           <h3 style={{ fontWeight: 700, fontSize: "0.95rem", marginBottom: "14px", color: "var(--text)" }}>
             Opinie ({shelter.reviews.length})
           </h3>
@@ -357,7 +390,7 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
               {expandedReviews ? <><ChevronUp size={14} /> Pokaż mniej</> : <><ChevronDown size={14} /> Pokaż wszystkie ({shelter.reviews.length})</>}
             </button>
           )}
-        </div>
+        </div>}
       </div>
 
       {showReviewForm && (

@@ -1,4 +1,4 @@
-import { Shelter, SurveyQuestion } from "@/types";
+import { Shelter, SurveyQuestion, Animal, VolunteerShift } from "@/types";
 
 export const mockShelters: Shelter[] = [
   {
@@ -182,6 +182,38 @@ export const mockShelters: Shelter[] = [
       { id: "r15", name: "Mikołaj", surname: "Twardowski", rating: 4, isVolunteerReview: true, comment: "Małe, ale bardzo sprawne. Każdy kot jest czipowany i zarejestrowany.", createdAt: "2024-12-20T10:30:00Z" },
     ],
   },
+];
+
+export const mockAnimals: Animal[] = [
+  // Shelter 1 — Gdańsk Przyrodnicza
+  { id: "an1", shelterId: "1", name: "Burek", species: "dog", breed: "Mieszaniec", age: 36, gender: "male", imageUrl: "https://picsum.photos/seed/dog-burek/400/300", description: "Spokojny, łagodny pies. Uwielbia spacery i dzieci. Szuka kochającego domu z ogrodem.", status: "available", vaccinated: true, sterilized: true, arrivedAt: "2024-10-01" },
+  { id: "an2", shelterId: "1", name: "Luna", species: "dog", breed: "Labrador mix", age: 14, gender: "female", imageUrl: "https://picsum.photos/seed/dog-luna/400/300", description: "Energiczna szczeniaczka szukająca aktywnej rodziny. Bardzo inteligentna, szybko się uczy.", status: "available", vaccinated: true, sterilized: false, arrivedAt: "2024-11-15" },
+  { id: "an3", shelterId: "1", name: "Mruczek", species: "cat", breed: "Europejski krótkowłosy", age: 60, gender: "male", imageUrl: "https://picsum.photos/seed/cat-mruczek/400/300", description: "Dostojny kocur, lubi ciszę i spokój. Idealny dla osób starszych lub pracujących zdalnie.", status: "reserved", vaccinated: true, sterilized: true, arrivedAt: "2024-09-20" },
+  { id: "an4", shelterId: "1", name: "Reks", species: "dog", breed: "Owczarek niemiecki mix", age: 48, gender: "male", imageUrl: "https://picsum.photos/seed/dog-reks/400/300", description: "Lojalny i mądry pies. Wymaga doświadczonego opiekuna. Zna podstawowe komendy.", status: "available", vaccinated: true, sterilized: true, arrivedAt: "2024-08-10" },
+  // Shelter 2 — Gdynia Małokacka
+  { id: "an5", shelterId: "2", name: "Bisia", species: "cat", breed: "Perski mix", age: 24, gender: "female", imageUrl: "https://picsum.photos/seed/cat-bisia/400/300", description: "Piękna koteczka z długą sierścią. Przytulna i towarzyska, kocha siedzieć na kolanach.", status: "available", vaccinated: true, sterilized: true, arrivedAt: "2024-12-01" },
+  { id: "an6", shelterId: "2", name: "Figo", species: "dog", breed: "Jack Russell Terrier", age: 18, gender: "male", imageUrl: "https://picsum.photos/seed/dog-figo/400/300", description: "Mały, żywiołowy piesek pełen energii. Kocha zabawę i będzie świetnym towarzyszem dla dzieci.", status: "available", vaccinated: true, sterilized: false, arrivedAt: "2025-01-05" },
+  { id: "an7", shelterId: "2", name: "Zefir", species: "dog", breed: "Golden Retriever mix", age: 8, gender: "male", imageUrl: "https://picsum.photos/seed/dog-zefir/400/300", description: "Uroczy szczeniak, bardzo łagodny. Pierwszy raz będzie w swoim domu — potrzebuje cierpliwości.", status: "available", vaccinated: true, sterilized: false, arrivedAt: "2025-02-01" },
+  // Shelter 3 — Sopot
+  { id: "an8", shelterId: "3", name: "Czika", species: "cat", breed: "Maine Coon mix", age: 12, gender: "female", imageUrl: "https://picsum.photos/seed/cat-czika/400/300", description: "Duża, majestatyczna kotka. Świetna do mieszkania, kocha zabawki i drapaki.", status: "available", vaccinated: true, sterilized: true, arrivedAt: "2024-11-20" },
+  { id: "an9", shelterId: "3", name: "Tygrys", species: "cat", breed: "Europejski pręgowany", age: 30, gender: "male", imageUrl: "https://picsum.photos/seed/cat-tygrys/400/300", description: "Wolnożyjący kot który trafił do schroniska. Potrzebuje cierpliwości, ale po oswojeniu jest bardzo oddany.", status: "available", vaccinated: true, sterilized: true, arrivedAt: "2024-10-15" },
+  // Shelter 5 — TOZ Oliwa
+  { id: "an10", shelterId: "5", name: "Kira", species: "dog", breed: "Husky mix", age: 20, gender: "female", imageUrl: "https://picsum.photos/seed/dog-kira/400/300", description: "Piękna husky mix o niebieskawych oczach. Wymaga dużo ruchu i najlepiej czuje się z innym psem.", status: "available", vaccinated: true, sterilized: true, arrivedAt: "2025-01-10" },
+  { id: "an11", shelterId: "5", name: "Puszek", species: "cat", breed: "Ragdoll mix", age: 6, gender: "male", imageUrl: "https://picsum.photos/seed/cat-puszek/400/300", description: "Milusieński kociak, bardzo spokojny. Idealny dla rodzin z dziećmi.", status: "adopted", vaccinated: true, sterilized: false, arrivedAt: "2025-01-20" },
+  // Shelter 9 — Szadółki
+  { id: "an12", shelterId: "9", name: "Bursztyn", species: "dog", breed: "Mieszaniec duży", age: 72, gender: "male", imageUrl: "https://picsum.photos/seed/dog-bursztyn/400/300", description: "Starszy, mądry pies. Potrafi być sam w domu. Szuka spokojnego domu na emeryturę.", status: "available", vaccinated: true, sterilized: true, arrivedAt: "2024-07-01" },
+  { id: "an13", shelterId: "9", name: "Śnieżka", species: "cat", breed: "Angorka", age: 18, gender: "female", imageUrl: "https://picsum.photos/seed/cat-sniezka/400/300", description: "Biała piękność. Delikatna i wymagająca. Szuka jedynego właściciela.", status: "available", vaccinated: true, sterilized: true, arrivedAt: "2024-12-10" },
+];
+
+export const mockVolunteerShifts: VolunteerShift[] = [
+  { id: "vs1", date: "2026-03-10", startHour: 9, endHour: 13, shelterName: "Schronisko Miejskie Gdańsk – ul. Przyrodnicza", task: "Spacery z psami i socjalizacja", status: "upcoming" },
+  { id: "vs2", date: "2026-03-14", startHour: 14, endHour: 18, shelterName: "Schronisko Miejskie Gdynia – Małokacka", task: "Karmienie i czyszczenie boksów", status: "upcoming" },
+  { id: "vs3", date: "2026-03-17", startHour: 10, endHour: 14, shelterName: "Schronisko Miejskie Gdańsk – ul. Przyrodnicza", task: "Asystowanie przy adopcjach", status: "upcoming" },
+  { id: "vs4", date: "2026-02-24", startHour: 9, endHour: 13, shelterName: "TOZ – Gdańsk Oliwa", task: "Spacery i rehabilitacja psów", status: "completed" },
+  { id: "vs5", date: "2026-02-17", startHour: 14, endHour: 17, shelterName: "Schronisko Miejskie Gdańsk – ul. Przyrodnicza", task: "Fotografowanie zwierząt do adopcji", status: "completed" },
+  { id: "vs6", date: "2026-02-10", startHour: 9, endHour: 12, shelterName: "Schronisko Miejskie Gdynia – Małokacka", task: "Karmienie i monitoring kotów", status: "completed" },
+  { id: "vs7", date: "2026-01-27", startHour: 10, endHour: 14, shelterName: "Schronisko Miejskie Gdańsk – ul. Przyrodnicza", task: "Spacery i socjalizacja", status: "completed" },
+  { id: "vs8", date: "2026-01-13", startHour: 14, endHour: 18, shelterName: "Fundacja Cztery Łapy – Sopot", task: "Asystowanie przy zabiegach weterynaryjnych", status: "completed" },
 ];
 
 export const mockQuestions: SurveyQuestion[] = [

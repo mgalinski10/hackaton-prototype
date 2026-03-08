@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { PawPrint, LogIn, LogOut, UserCircle, ShieldCheck, Heart } from "lucide-react";
+import { PawPrint, LogIn, LogOut, UserCircle, ShieldCheck, Heart, LayoutDashboard } from "lucide-react";
 import { useState } from "react";
 
 export default function Navbar() {
@@ -40,10 +40,20 @@ export default function Navbar() {
                   }}
                 >
                   <Heart size={14} />
-                  Zostań wolontariuszem
+                  Wolontariusz
                 </button>
               </Link>
             )}
+
+            <Link href="/dashboard">
+              <button
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm"
+                style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "10px", color: "var(--text)", cursor: "pointer" }}
+              >
+                <LayoutDashboard size={14} style={{ color: "var(--yellow)" }} />
+                Dashboard
+              </button>
+            </Link>
 
             <div className="relative">
               <button
