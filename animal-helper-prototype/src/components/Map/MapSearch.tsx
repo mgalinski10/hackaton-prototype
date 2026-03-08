@@ -1,16 +1,19 @@
 "use client";
 import { useState } from "react";
 import { Shelter } from "@/types";
-import { Search, CheckCircle2, X, Filter } from "lucide-react";
+import { Search, CheckCircle2, X, Filter, Navigation } from "lucide-react";
 import StarRating from "@/components/Shelter/StarRating";
 
 interface Props {
   shelters: Shelter[];
   onSelect: (shelter: Shelter) => void;
   selectedId: string | null;
+  onGps: () => void;
+  gpsLoading: boolean;
+  gpsError: string;
 }
 
-export default function MapSearch({ shelters, onSelect, selectedId }: Props) {
+export default function MapSearch({ shelters, onSelect, selectedId, onGps, gpsLoading, gpsError }: Props) {
   const [query, setQuery] = useState("");
   const [filterVerified, setFilterVerified] = useState(false);
   const [filterMinRating, setFilterMinRating] = useState(0);
@@ -32,49 +35,83 @@ export default function MapSearch({ shelters, onSelect, selectedId }: Props) {
   return (
     <div
       style={{
-        position: "absolute", left: "12px", top: "12px", zIndex: 500,
-        width: "300px",
+        position: "absolute", top: "12px", left: "50%", transform: "translateX(-50%)",
+        zIndex: 500, width: "520px", maxWidth: "calc(100vw - 280px)",
         display: "flex", flexDirection: "column", gap: "8px",
       }}
     >
-      {/* Search input */}
-      <div style={{ position: "relative" }}>
-        <Search size={15} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }} />
-        <input
-          type="text"
-          placeholder="Szukaj schroniska lub miasta..."
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
+      {/* Filter toggle + Search + GPS row */}
+      <div style={{ display: "flex", gap: "8px" }}>
+        {/* Filter button */}
+        <button
+          onClick={() => setShowFilters(!showFilters)}
           style={{
-            width: "100%", paddingLeft: "36px", paddingRight: query ? "36px" : "12px",
-            height: "44px", background: "var(--surface)", border: "1px solid var(--border)",
-            borderRadius: "10px", color: "var(--text)", fontSize: "0.875rem",
-            outline: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
+            display: "flex", alignItems: "center", gap: "6px",
+            padding: "0 14px", background: "var(--surface)",
+            border: `1px solid ${hasFilters ? "var(--yellow)" : "var(--border)"}`,
+            borderRadius: "10px", color: hasFilters ? "var(--yellow)" : "var(--text-muted)",
+            fontSize: "0.8rem", cursor: "pointer", boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
+            height: "44px", whiteSpace: "nowrap", flexShrink: 0,
           }}
-        />
-        {query && (
-          <button onClick={() => setQuery("")} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
-            <X size={14} />
-          </button>
-        )}
+        >
+          <Filter size={13} />
+          Filtry
+          {hasFilters && <span style={{ background: "var(--yellow)", color: "#000", borderRadius: "50%", width: "16px", height: "16px", fontSize: "0.65rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>!</span>}
+        </button>
+
+        <div style={{ position: "relative", flex: 1 }}>
+          <Search size={15} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }} />
+          <input
+            type="text"
+            placeholder="Szukaj schroniska lub miasta..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            style={{
+              width: "100%", paddingLeft: "36px", paddingRight: query ? "36px" : "12px",
+              height: "44px", background: "var(--surface)", border: "1px solid var(--border)",
+              borderRadius: "10px", color: "var(--text)", fontSize: "0.875rem",
+              outline: "none", boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
+            }}
+          />
+          {query && (
+            <button onClick={() => setQuery("")} style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
+              <X size={14} />
+            </button>
+          )}
+        </div>
+
+        {/* GPS button */}
+        <button
+          onClick={onGps}
+          disabled={gpsLoading}
+          title="Znajdź najbliższe schronisko"
+          style={{
+            display: "flex", alignItems: "center", gap: "7px",
+            background: "var(--surface)", border: "1px solid var(--border)",
+            borderRadius: "10px", padding: "0 14px",
+            fontSize: "0.8rem", color: gpsLoading ? "var(--text-muted)" : "var(--yellow)",
+            fontWeight: 600, cursor: gpsLoading ? "not-allowed" : "pointer",
+            boxShadow: "0 2px 12px rgba(0,0,0,0.4)",
+            height: "44px", whiteSpace: "nowrap", flexShrink: 0,
+            transition: "border-color 0.2s",
+          }}
+          onMouseEnter={(e) => { if (!gpsLoading) e.currentTarget.style.borderColor = "rgba(250,204,21,0.4)"; }}
+          onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
+        >
+          {gpsLoading
+            ? <div style={{ width: "14px", height: "14px", border: "2px solid var(--border)", borderTop: "2px solid var(--yellow)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+            : <Navigation size={14} />
+          }
+          {gpsLoading ? "Szukam..." : "Najbliższe"}
+        </button>
       </div>
 
-      {/* Filter toggle */}
-      <button
-        onClick={() => setShowFilters(!showFilters)}
-        style={{
-          display: "flex", alignItems: "center", gap: "6px",
-          padding: "8px 12px", background: "var(--surface)",
-          border: `1px solid ${hasFilters ? "var(--yellow)" : "var(--border)"}`,
-          borderRadius: "8px", color: hasFilters ? "var(--yellow)" : "var(--text-muted)",
-          fontSize: "0.8rem", cursor: "pointer", boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-          width: "fit-content",
-        }}
-      >
-        <Filter size={13} />
-        Filtry
-        {hasFilters && <span style={{ background: "var(--yellow)", color: "#000", borderRadius: "50%", width: "16px", height: "16px", fontSize: "0.65rem", fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>!</span>}
-      </button>
+      {gpsError && (
+        <p style={{ fontSize: "0.72rem", color: "var(--red)", background: "var(--surface)", padding: "5px 10px", borderRadius: "8px", border: "1px solid var(--border)", boxShadow: "0 2px 8px rgba(0,0,0,0.3)", alignSelf: "center" }}>
+          {gpsError}
+        </p>
+      )}
+
 
       {/* Filters panel */}
       {showFilters && (

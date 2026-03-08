@@ -1,120 +1,15 @@
 [
   {
     "shelterId": "1",
-    "id": "r-1772962500545",
-    "name": "Anna",
-    "surname": "Wolontariusz",
-    "rating": 1,
-    "comment": "asfldksfjlsdajlkfjasdkf",
-    "isVolunteerReview": true,
-    "photoUrl": "/uploads/reviews/1772962500544-hgjams32dti.png",
-    "createdAt": "2026-03-08T09:35:00.545Z"
-  },
-  {
-    "shelterId": "1",
-    "id": "r-1772962477551",
-    "name": "Anna",
-    "surname": "Wolontariusz",
-    "rating": 5,
-    "comment": "super mega super",
-    "isVolunteerReview": true,
-    "photoUrl": "/uploads/reviews/1772962477550-evd4r9a066k.jpg",
-    "createdAt": "2026-03-08T09:34:37.551Z"
-  },
-  {
-    "shelterId": "1",
-    "id": "r-1772962400358",
-    "name": "Jan",
-    "surname": "Kowalski",
-    "rating": 1,
-    "comment": "",
-    "isVolunteerReview": false,
-    "createdAt": "2026-03-08T09:33:20.358Z"
-  },
-  {
-    "shelterId": "1",
-    "id": "r-1772961990320",
-    "name": "Jan",
-    "surname": "Kowalski",
-    "rating": 1,
-    "comment": "Fatalne schronisko pozdrawiam",
-    "isVolunteerReview": false,
-    "photoUrl": "/uploads/reviews/1772961990320-qre41gk521q.jpg",
-    "createdAt": "2026-03-08T09:26:30.320Z"
-  },
-  {
-    "shelterId": "10",
-    "id": "r-1772954762477",
-    "name": "Anna",
-    "surname": "Wolontariusz",
-    "rating": 5,
-    "comment": "vjjgghjhjhjghjhjhhhjhjhjhjghjhjhjhghj",
-    "isVolunteerReview": true,
-    "photoUrl": "/uploads/reviews/1772954762477-gtfkrrtee3n.jpeg",
-    "createdAt": "2026-03-08T07:26:02.477Z"
-  },
-  {
-    "shelterId": "6",
-    "id": "r-1772954434317",
-    "name": "Anna",
-    "surname": "Wolontariusz",
-    "rating": 4,
-    "comment": "asdjkaskjdnkaskjdkjasdjksakjdkjaskjdkasjdjkasdkjasd",
-    "isVolunteerReview": true,
-    "photoUrl": "/uploads/reviews/1772954434316-7ipgb74mhz8.jpeg",
-    "createdAt": "2026-03-08T07:20:34.317Z"
-  },
-  {
-    "shelterId": "3",
-    "id": "r-1772954323779",
-    "name": "Jan",
-    "surname": "Kowalski",
-    "rating": 4,
-    "comment": "asdasdasdasd",
-    "isVolunteerReview": false,
-    "createdAt": "2026-03-08T07:18:43.779Z"
-  },
-  {
-    "shelterId": "6",
-    "id": "r-1772951139879",
-    "name": "Anna",
-    "surname": "Wolontariusz",
-    "rating": 5,
-    "comment": "Ddsad",
-    "isVolunteerReview": true,
-    "photoUrl": "/uploads/reviews/1772951139877-my45bj7x9f.jpeg",
-    "createdAt": "2026-03-08T06:25:39.879Z"
-  },
-  {
-    "shelterId": "2",
-    "id": "r-1772950827073",
-    "name": "Jan",
-    "surname": "Kowalski",
-    "rating": 5,
-    "comment": "Adsa",
-    "isVolunteerReview": false,
-    "createdAt": "2026-03-08T06:20:27.073Z"
-  },
-  {
-    "shelterId": "3",
-    "id": "r-1772950644066",
-    "name": "Jan",
-    "surname": "Kowalski",
-    "rating": 5,
-    "comment": "Aasdasldasjdkas",
-    "isVolunteerReview": false,
-    "photoUrl": "/uploads/reviews/1772950644065-1v5dqrkl03t.jpeg",
-    "createdAt": "2026-03-08T06:17:24.066Z"
-  },
-  {
-    "shelterId": "1",
     "id": "seed-1",
     "name": "Adam",
     "surname": "Testowy",
     "rating": 5,
     "comment": "Świetne schronisko, bardzo zadbane zwierzęta.",
     "isVolunteerReview": false,
-    "createdAt": "2026-03-04T10:00:00.000Z"
+    "createdAt": "2026-03-04T10:00:00.000Z",
+    "trustScore": 82,
+    "trustReason": "Komentarz szczegółowy i merytoryczny — wysoka wiarygodność"
   },
   {
     "shelterId": "1",
@@ -124,7 +19,9 @@
     "rating": 5,
     "comment": "Personel bardzo pomocny, polecam!",
     "isVolunteerReview": false,
-    "createdAt": "2026-03-05T10:00:00.000Z"
+    "createdAt": "2026-03-05T10:00:00.000Z",
+    "trustScore": 74,
+    "trustReason": "Komentarz ogólny, bez wyraźnych oznak manipulacji"
   },
   {
     "shelterId": "1",
@@ -134,7 +31,9 @@
     "rating": 5,
     "comment": "Wzorowe warunki dla zwierząt.",
     "isVolunteerReview": false,
-    "createdAt": "2026-03-06T10:00:00.000Z"
+    "createdAt": "2026-03-06T10:00:00.000Z",
+    "trustScore": 71,
+    "trustReason": "Komentarz ogólny, bez wyraźnych oznak manipulacji"
   },
   {
     "shelterId": "2",
@@ -144,7 +43,9 @@
     "rating": 2,
     "comment": "Słabe warunki, boksy brudne.",
     "isVolunteerReview": false,
-    "createdAt": "2026-03-04T10:00:00.000Z"
+    "createdAt": "2026-03-04T10:00:00.000Z",
+    "trustScore": 76,
+    "trustReason": "Komentarz ogólny, bez wyraźnych oznak manipulacji"
   },
   {
     "shelterId": "2",
@@ -154,7 +55,9 @@
     "rating": 2,
     "comment": "Niedbały personel, mało zaangażowany.",
     "isVolunteerReview": false,
-    "createdAt": "2026-03-05T10:00:00.000Z"
+    "createdAt": "2026-03-05T10:00:00.000Z",
+    "trustScore": 73,
+    "trustReason": "Komentarz ogólny, bez wyraźnych oznak manipulacji"
   },
   {
     "shelterId": "2",
@@ -164,6 +67,8 @@
     "rating": 1,
     "comment": "Bardzo złe warunki, zwierzęta wyglądają źle.",
     "isVolunteerReview": false,
-    "createdAt": "2026-03-06T10:00:00.000Z"
+    "createdAt": "2026-03-06T10:00:00.000Z",
+    "trustScore": 68,
+    "trustReason": "Komentarz ogólny, bez wyraźnych oznak manipulacji"
   }
 ]

@@ -6,7 +6,6 @@ import { Shelter } from "@/types";
 import Sidebar from "@/components/Layout/Sidebar";
 import ShelterPanel from "@/components/Shelter/ShelterPanel";
 import MapSearch from "@/components/Map/MapSearch";
-import { Navigation } from "lucide-react";
 
 const ShelterMap = dynamic(() => import("@/components/Map/ShelterMap"), {
   ssr: false,
@@ -102,40 +101,10 @@ export default function HomePage() {
           shelters={mockShelters}
           selectedId={selectedShelter?.id ?? null}
           onSelect={setSelectedShelter}
+          onGps={findNearest}
+          gpsLoading={gpsLoading}
+          gpsError={gpsError}
         />
-
-        {/* Bottom-left controls */}
-        <div style={{ position: "absolute", bottom: "24px", left: "12px", zIndex: 500, display: "flex", flexDirection: "column", gap: "8px" }}>
-          {/* GPS button */}
-          <button
-            onClick={findNearest}
-            disabled={gpsLoading}
-            title="Znajdź najbliższe schronisko"
-            style={{
-              display: "flex", alignItems: "center", gap: "8px",
-              background: "var(--surface)", border: "1px solid var(--border)",
-              borderRadius: "12px", padding: "9px 14px",
-              fontSize: "0.8rem", color: gpsLoading ? "var(--text-muted)" : "var(--yellow)",
-              fontWeight: 600, cursor: gpsLoading ? "not-allowed" : "pointer",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.4)",
-              transition: "border-color 0.2s",
-            }}
-            onMouseEnter={(e) => { if (!gpsLoading) e.currentTarget.style.borderColor = "rgba(250,204,21,0.4)"; }}
-            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
-          >
-            {gpsLoading
-              ? <div style={{ width: "14px", height: "14px", border: "2px solid var(--border)", borderTop: "2px solid var(--yellow)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-              : <Navigation size={14} />
-            }
-            {gpsLoading ? "Szukam..." : "Najbliższe schronisko"}
-          </button>
-
-          {gpsError && (
-            <p style={{ fontSize: "0.75rem", color: "var(--red)", background: "var(--surface)", padding: "6px 10px", borderRadius: "8px", border: "1px solid var(--border)" }}>
-              {gpsError}
-            </p>
-          )}
-        </div>
 
         {/* Side panel */}
         {selectedShelter && (

@@ -35,20 +35,18 @@ function getStayColor(days: number): string {
 }
 
 function TrustBadge({ score, reason }: { score: number; reason: string }) {
-  const color = score >= 80 ? "#22c55e" : score >= 55 ? "#f59e0b" : "#ef4444";
-  const bg = score >= 80 ? "rgba(34,197,94,0.1)" : score >= 55 ? "rgba(245,158,11,0.1)" : "rgba(239,68,68,0.1)";
-  const label = score >= 80 ? "Wiarygodna" : score >= 55 ? "Neutralna" : "Podejrzana";
   return (
     <span
       title={reason}
       style={{
-        display: "inline-flex", alignItems: "center", gap: "4px",
-        background: bg, color, fontSize: "0.6rem", fontWeight: 700,
-        padding: "2px 7px", borderRadius: "20px", cursor: "help",
-        border: `1px solid ${color}33`,
+        display: "inline-flex", alignItems: "center", gap: "3px",
+        background: "rgba(255,255,255,0.05)", color: "var(--text-muted)",
+        fontSize: "0.62rem", fontWeight: 500,
+        padding: "1px 7px", borderRadius: "20px", cursor: "help",
+        border: "1px solid var(--border)",
       }}
     >
-      AI · {label} {score}
+      Rzetelność: {score}%
     </span>
   );
 }
@@ -143,7 +141,7 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
       <div
         style={{
           position: "absolute", right: 0, top: 0, bottom: 0,
-          width: "100%", maxWidth: "440px",
+          width: "100%", maxWidth: "520px",
           background: "var(--surface)",
           borderLeft: "1px solid var(--border)",
           borderTopLeftRadius: "16px",
