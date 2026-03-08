@@ -1,4 +1,4 @@
-// File: /home/michal/Hackaton/hackaton-prototype/animal-helper-prototype/src/app/layout.tsx
+// File: /Users/mikolajkalejta/hackaton-prototype/animal-helper-prototype/src/app/layout.tsx
 import * as entry from '../../../src/app/layout.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
