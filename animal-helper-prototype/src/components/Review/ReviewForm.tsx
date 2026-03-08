@@ -1,15 +1,15 @@
 "use client";
-import { useState } from "react";
-import { Shelter } from "@/types";
+import { useRef, useState } from "react";
+import { Shelter, Review } from "@/types";
 import { mockQuestions } from "@/data/mockData";
 import { useAuth } from "@/context/AuthContext";
 import StarRating from "@/components/Shelter/StarRating";
-import { X, Upload, Send } from "lucide-react";
+import { X, Upload, Send, ImageIcon } from "lucide-react";
 
 interface Props {
   shelter: Shelter;
   onClose: () => void;
-  onSubmitted: () => void;
+  onSubmitted: (review: Review) => void;
 }
 
 export default function ReviewForm({ shelter, onClose, onSubmitted }: Props) {
@@ -19,20 +19,51 @@ export default function ReviewForm({ shelter, onClose, onSubmitted }: Props) {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
   const [hoverRating, setHoverRating] = useState(0);
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const isVolunteer = user?.role === "VOLUNTEER" || user?.role === "ADMIN";
   const questions = mockQuestions.filter((q) => !q.isVolunteerQuestion || isVolunteer);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (rating === 0) return;
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 1000));
-    setLoading(false);
-    onSubmitted();
+  const sliderLabels = ["Bardzo źle", "Źle", "Średnio", "Dobrze", "Świetnie"];
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    setPhoto(file);
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setPhotoPreview(url);
+    } else {
+      setPhotoPreview(null);
+    }
   };
 
-  const sliderLabels = ["Bardzo źle", "Źle", "Średnio", "Dobrze", "Świetnie"];
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (rating === 0 || !user) return;
+    setLoading(true);
+
+    const fd = new FormData();
+    fd.append("shelterId", shelter.id);
+    fd.append("name", user.name);
+    fd.append("surname", user.surname);
+    fd.append("rating", String(rating));
+    fd.append("comment", comment);
+    fd.append("isVolunteerReview", String(isVolunteer));
+    if (photo) fd.append("photo", photo);
+
+    try {
+      const res = await fetch("/api/reviews", { method: "POST", body: fd });
+      if (!res.ok) throw new Error("Błąd zapisu");
+      const saved: Review = await res.json();
+      onSubmitted(saved);
+    } catch {
+      alert("Nie udało się zapisać opinii.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div
@@ -74,10 +105,7 @@ export default function ReviewForm({ shelter, onClose, onSubmitted }: Props) {
                   onMouseEnter={() => setHoverRating(n)}
                   onMouseLeave={() => setHoverRating(0)}
                   style={{
-                    fontSize: "2.5rem",
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
+                    fontSize: "2.5rem", background: "none", border: "none", cursor: "pointer",
                     color: n <= (hoverRating || rating) ? "var(--yellow)" : "var(--border)",
                     transition: "all 0.1s",
                     transform: n <= (hoverRating || rating) ? "scale(1.15)" : "scale(1)",
@@ -151,17 +179,48 @@ export default function ReviewForm({ shelter, onClose, onSubmitted }: Props) {
 
           {/* Photo */}
           <div style={{ marginBottom: "24px" }}>
-            <label
-              style={{
-                display: "flex", alignItems: "center", gap: "8px", padding: "10px 16px",
-                border: "2px dashed var(--border)", borderRadius: "8px", cursor: "pointer",
-                color: "var(--text-muted)", fontSize: "0.9rem",
-              }}
-            >
-              <Upload size={16} />
-              Dodaj zdjęcie (opcjonalnie)
-              <input type="file" accept="image/*" style={{ display: "none" }} />
+            <label style={{ display: "block", fontWeight: 600, marginBottom: "8px", fontSize: "0.9rem" }}>
+              Zdjęcie (opcjonalnie)
             </label>
+            {photoPreview ? (
+              <div style={{ position: "relative", borderRadius: "10px", overflow: "hidden", marginBottom: "8px" }}>
+                <img
+                  src={photoPreview}
+                  alt="Podgląd"
+                  style={{ width: "100%", maxHeight: "200px", objectFit: "cover", display: "block" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => { setPhoto(null); setPhotoPreview(null); if (fileInputRef.current) fileInputRef.current.value = ""; }}
+                  style={{
+                    position: "absolute", top: "8px", right: "8px",
+                    background: "rgba(0,0,0,0.6)", border: "none", borderRadius: "50%",
+                    width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center",
+                    color: "#fff", cursor: "pointer",
+                  }}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ) : (
+              <label
+                style={{
+                  display: "flex", alignItems: "center", gap: "8px", padding: "10px 16px",
+                  border: "2px dashed var(--border)", borderRadius: "8px", cursor: "pointer",
+                  color: "var(--text-muted)", fontSize: "0.9rem",
+                }}
+              >
+                <Upload size={16} />
+                Dodaj zdjęcie
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={handlePhotoChange}
+                />
+              </label>
+            )}
           </div>
 
           {/* Submit */}
@@ -172,11 +231,8 @@ export default function ReviewForm({ shelter, onClose, onSubmitted }: Props) {
             style={{
               background: rating === 0 ? "var(--surface-2)" : "var(--yellow)",
               color: rating === 0 ? "var(--text-muted)" : "#000",
-              border: "none",
-              borderRadius: "8px",
-              padding: "12px",
-              fontWeight: 700,
-              fontSize: "0.95rem",
+              border: "none", borderRadius: "8px", padding: "12px",
+              fontWeight: 700, fontSize: "0.95rem",
               cursor: rating === 0 ? "not-allowed" : "pointer",
               transition: "all 0.2s",
             }}

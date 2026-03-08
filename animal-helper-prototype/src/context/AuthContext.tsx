@@ -1,6 +1,26 @@
 "use client";
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { User } from "@/types";
+
+const STORAGE_KEY = "animal_helper_user";
+
+function loadUser(): User | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as User) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveUser(user: User | null) {
+  if (user) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+  } else {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+}
 
 interface AuthContextType {
   user: User | null;
@@ -20,12 +40,21 @@ const MOCK_USERS: (User & { password: string })[] = [
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
+  useEffect(() => {
+    setUser(loadUser());
+  }, []);
+
+  const setAndPersist = (u: User | null) => {
+    setUser(u);
+    saveUser(u);
+  };
+
   const login = async (email: string, password: string) => {
     await new Promise((r) => setTimeout(r, 600));
     const found = MOCK_USERS.find((u) => u.email === email && u.password === password);
     if (found) {
       const { password: _, ...u } = found;
-      setUser(u);
+      setAndPersist(u);
       return true;
     }
     return false;
@@ -33,11 +62,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (name: string, surname: string, email: string, _password: string) => {
     await new Promise((r) => setTimeout(r, 800));
-    setUser({ id: `u-${Date.now()}`, name, surname, email, role: "USER" });
+    setAndPersist({ id: `u-${Date.now()}`, name, surname, email, role: "USER" });
     return true;
   };
 
-  const logout = () => setUser(null);
+  const logout = () => setAndPersist(null);
 
   return <AuthContext.Provider value={{ user, login, register, logout }}>{children}</AuthContext.Provider>;
 }

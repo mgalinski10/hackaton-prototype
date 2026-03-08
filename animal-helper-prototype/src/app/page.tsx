@@ -3,7 +3,7 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 import { mockShelters } from "@/data/mockData";
 import { Shelter } from "@/types";
-import Navbar from "@/components/Layout/Navbar";
+import Sidebar from "@/components/Layout/Sidebar";
 import ShelterPanel from "@/components/Shelter/ShelterPanel";
 import MapSearch from "@/components/Map/MapSearch";
 import { Navigation } from "lucide-react";
@@ -62,8 +62,11 @@ export default function HomePage() {
   };
 
   return (
-    <div style={{ height: "100vh", display: "flex", flexDirection: "column", overflow: "hidden" }}>
-      <Navbar />
+    <div style={{ height: "100vh", display: "flex", flexDirection: "row", overflow: "hidden" }}>
+      <Sidebar />
+
+      {/* Right column */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
 
       {/* Hero strip */}
       <div style={{ background: "var(--surface)", borderBottom: "1px solid var(--border)", padding: "8px 20px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -144,6 +147,7 @@ export default function HomePage() {
         )}
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>{/* end right column */}
     </div>
   );
 }

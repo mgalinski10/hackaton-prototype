@@ -1,13 +1,13 @@
 "use client";
-import { useState } from "react";
-import { Shelter } from "@/types";
+import { useEffect, useState } from "react";
+import { Shelter, Review } from "@/types";
 import { useAuth } from "@/context/AuthContext";
 import StarRating from "./StarRating";
 import ReviewForm from "@/components/Review/ReviewForm";
 import {
   X, MapPin, Phone, Mail, CheckCircle2, AlertCircle,
   MessageSquarePlus, ChevronDown, ChevronUp,
-  Crown, FileText, Shield, TrendingUp, Skull, Clock,
+  Crown, FileText, Shield, TrendingUp, Skull, Clock, ImageIcon,
 } from "lucide-react";
 
 interface Props {
@@ -39,20 +39,31 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
   const [toast, setToast] = useState("");
   const [expandedReviews, setExpandedReviews] = useState(false);
   const [imgError, setImgError] = useState(false);
+  const [dynamicReviews, setDynamicReviews] = useState<Review[]>([]);
+
+  useEffect(() => {
+    fetch(`/api/reviews?shelterId=${shelter.id}`)
+      .then((r) => r.json())
+      .then((data: Review[]) => setDynamicReviews(data))
+      .catch(() => {});
+  }, [shelter.id]);
+
+  const allReviews = [...dynamicReviews, ...shelter.reviews];
 
   const avgRating =
-    shelter.reviews.length > 0
-      ? shelter.reviews.reduce((s, r) => s + r.rating, 0) / shelter.reviews.length
+    allReviews.length > 0
+      ? allReviews.reduce((s, r) => s + r.rating, 0) / allReviews.length
       : 0;
 
-  const volunteerReviews = shelter.reviews.filter((r) => r.isVolunteerReview);
-  const regularReviews = shelter.reviews.filter((r) => !r.isVolunteerReview);
+  const volunteerReviews = allReviews.filter((r) => r.isVolunteerReview);
+  const regularReviews = allReviews.filter((r) => !r.isVolunteerReview);
 
   const shownRegular = expandedReviews ? regularReviews : regularReviews.slice(0, 2);
 
   const isVerified = shelter.verificationStatus === "VERIFIED";
 
-  const handleSubmitted = () => {
+  const handleSubmitted = (review: Review) => {
+    setDynamicReviews((prev) => [review, ...prev]);
     setShowReviewForm(false);
     setToast("Opinia została dodana! Dziękujemy.");
     setTimeout(() => setToast(""), 3000);
@@ -175,7 +186,7 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
                 fontSize: "0.7rem", fontWeight: 700, padding: "3px 10px", borderRadius: "20px",
                 border: "1px solid rgba(6,182,212,0.25)",
               }}>
-                <Shield size={10} /> WOLONTARIUSZE
+                <Shield size={10} /> WOLONTARIUSZE ANIMAL HELPER
               </span>
             )}
           </div>
@@ -193,14 +204,14 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
               <div>
                 <StarRating rating={avgRating} size={18} />
                 <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "2px" }}>
-                  {shelter.reviews.length} {shelter.reviews.length === 1 ? "opinia" : shelter.reviews.length < 5 ? "opinie" : "opinii"}
+                  {allReviews.length} {allReviews.length === 1 ? "opinia" : allReviews.length < 5 ? "opinie" : "opinii"}
                   {volunteerReviews.length > 0 && ` · ${volunteerReviews.length} od wolontariuszy`}
                 </p>
               </div>
             </div>
           )}
 
-          {shelter.reviews.length === 0 && (
+          {allReviews.length === 0 && (
             <p style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: "10px" }}>Brak opinii – bądź pierwszym!</p>
           )}
         </div>
@@ -365,7 +376,7 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
               Dodaj opinię
               {user.role === "VOLUNTEER" && (
                 <span style={{ background: "#000", color: "var(--yellow)", fontSize: "0.65rem", padding: "2px 8px", borderRadius: "20px" }}>
-                  WOLONTARIUSZ
+                  WOLONTARIUSZ ANIMAL HELPER
                 </span>
               )}
             </button>
@@ -422,7 +433,7 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
                             {review.name} {review.surname}
                           </span>
                           <span style={{ background: "rgba(6,182,212,0.2)", color: "#06B6D4", fontSize: "0.6rem", fontWeight: 700, padding: "2px 7px", borderRadius: "20px" }}>
-                            WOLONTARIUSZ
+                            WOLONTARIUSZ ANIMAL HELPER
                           </span>
                         </div>
                         <p style={{ fontSize: "0.7rem", color: "var(--text-muted)", marginTop: "2px" }}>
@@ -433,6 +444,15 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
                     </div>
                     {review.comment && (
                       <p style={{ fontSize: "0.875rem", color: "var(--text-muted)", lineHeight: "1.6" }}>{review.comment}</p>
+                    )}
+                    {review.photoUrl && (
+                      <div style={{ marginTop: "10px", borderRadius: "10px", overflow: "hidden" }}>
+                        <img
+                          src={review.photoUrl}
+                          alt="Zdjęcie z opinii"
+                          style={{ width: "100%", maxHeight: "220px", objectFit: "cover", display: "block" }}
+                        />
+                      </div>
                     )}
                   </div>
                 ))}
@@ -473,6 +493,15 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
                     {review.comment && (
                       <p style={{ fontSize: "0.85rem", color: "var(--text-muted)", lineHeight: "1.55" }}>{review.comment}</p>
                     )}
+                    {review.photoUrl && (
+                      <div style={{ marginTop: "10px", borderRadius: "10px", overflow: "hidden" }}>
+                        <img
+                          src={review.photoUrl}
+                          alt="Zdjęcie z opinii"
+                          style={{ width: "100%", maxHeight: "220px", objectFit: "cover", display: "block" }}
+                        />
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -496,7 +525,7 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
             </div>
           )}
 
-          {shelter.reviews.length === 0 && (
+          {allReviews.length === 0 && (
             <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", textAlign: "center", padding: "24px 0" }}>
               Brak opinii. Podziel się swoim doświadczeniem!
             </p>
