@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
-import { PawPrint, LogIn, LogOut, UserCircle, ShieldCheck, Heart, LayoutDashboard } from "lucide-react";
+import { PawPrint, LogIn, LogOut, UserCircle, ShieldCheck, Heart, LayoutDashboard, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 export default function Navbar() {
@@ -25,6 +25,18 @@ export default function Navbar() {
           Animal Helper
         </span>
       </Link>
+
+      {/* Center nav */}
+      <div className="flex items-center gap-2">
+        <Link href="/adopt-match" style={{ textDecoration: "none" }}>
+          <button
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm"
+            style={{ background: "transparent", border: "1px solid rgba(6,182,212,0.3)", borderRadius: "10px", color: "#06B6D4", cursor: "pointer", fontWeight: 600 }}
+          >
+            <Sparkles size={14} /> Dopasuj zwierzę AI
+          </button>
+        </Link>
+      </div>
 
       {/* Right */}
       <div className="flex items-center gap-3">
@@ -86,6 +98,13 @@ export default function Navbar() {
                       <div className="flex items-center gap-2 w-full px-3 py-2 text-sm" style={{ color: "var(--yellow)", cursor: "pointer", padding: "10px 14px", borderBottom: "1px solid var(--border)" }}>
                         <Heart size={14} />
                         Zostań wolontariuszem
+                      </div>
+                    </Link>
+                  )}
+                  {user.role === "ADMIN" && (
+                    <Link href="/admin" onClick={() => setMenuOpen(false)} style={{ textDecoration: "none" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--yellow)", cursor: "pointer", padding: "10px 14px", borderBottom: "1px solid var(--border)", fontSize: "0.875rem", fontWeight: 600 }}>
+                        <ShieldCheck size={14} /> Panel Admina
                       </div>
                     </Link>
                   )}

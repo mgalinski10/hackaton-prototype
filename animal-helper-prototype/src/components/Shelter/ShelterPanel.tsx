@@ -5,11 +5,12 @@ import { useAuth } from "@/context/AuthContext";
 import StarRating from "./StarRating";
 import ReviewForm from "@/components/Review/ReviewForm";
 import AnimalGallery from "@/components/Animals/AnimalGallery";
+import DonationModal from "@/components/Donation/DonationModal";
 import { mockAnimals } from "@/data/mockData";
 import {
   X, MapPin, Phone, Mail, CheckCircle2, AlertCircle,
   Building2, MessageSquarePlus, ChevronDown, ChevronUp,
-  PawPrint, Users, Download, Crown,
+  PawPrint, Users, Download, Crown, Heart,
 } from "lucide-react";
 
 interface Props {
@@ -20,6 +21,7 @@ interface Props {
 export default function ShelterPanel({ shelter, onClose }: Props) {
   const { user } = useAuth();
   const [showReviewForm, setShowReviewForm] = useState(false);
+  const [showDonation, setShowDonation] = useState(false);
   const [toast, setToast] = useState("");
   const [expandedReviews, setExpandedReviews] = useState(false);
   const [imgError, setImgError] = useState(false);
@@ -289,6 +291,18 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
           )}
         </div>}
 
+        {/* Donate + Review CTA */}
+        {activeTab === "info" && <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
+          <button
+            onClick={() => setShowDonation(true)}
+            style={{ width: "100%", background: "rgba(250,204,21,0.08)", border: "1px solid rgba(250,204,21,0.25)", borderRadius: "14px", padding: "11px 16px", fontWeight: 700, fontSize: "0.9rem", cursor: "pointer", color: "var(--yellow)", display: "flex", alignItems: "center", justifyContent: "center", gap: "8px", marginBottom: "10px", transition: "background 0.2s" }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(250,204,21,0.15)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(250,204,21,0.08)")}
+          >
+            <Heart size={16} /> Wesprzyj schronisko
+          </button>
+        </div>}
+
         {/* Add Review CTA */}
         {activeTab === "info" && <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
           {user ? (
@@ -395,6 +409,10 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
 
       {showReviewForm && (
         <ReviewForm shelter={shelter} onClose={() => setShowReviewForm(false)} onSubmitted={handleSubmitted} />
+      )}
+
+      {showDonation && (
+        <DonationModal shelter={shelter} onClose={() => setShowDonation(false)} />
       )}
 
       {toast && <div className="toast">{toast}</div>}
