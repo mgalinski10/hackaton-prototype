@@ -355,7 +355,7 @@ export default function ShelterPanel({ shelter, onClose }: Props) {
 
         {/* Add review CTA */}
         <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
-          {user ? (
+          {user && user.role !== "ADMIN" ? (
             <button
               onClick={() => setShowReviewForm(true)}
               style={{
